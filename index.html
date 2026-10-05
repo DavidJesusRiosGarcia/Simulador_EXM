@@ -1,0 +1,4457 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50 text-slate-800 antialiased">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Exámenes - STIBO</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            apple: {
+              gray: '#F5F5F7',
+              card: '#FFFFFF',
+              border: '#E5E5EA',
+              subtext: '#86868B',
+              dark: '#1D1D1F',
+              blue: '#0071E3',
+              hoverBlue: '#0077ED',
+              green: '#34C759',
+              red: '#FF3B30',
+              amber: '#FF9500'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- jQuery y Anime.js -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js"></script>
+
+  <style>
+    /* Estilos de scrollbar y transiciones finas */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #D1D1D6;
+      border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8E8E93;
+    }
+
+    .apple-glass {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .focus-apple:focus-visible {
+      outline: 2px solid #0071E3;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body class="min-h-full flex flex-col font-sans selection:bg-blue-100 selection:text-apple-blue">
+
+  <header class="sticky top-0 z-40 border-b border-apple-border/80 apple-glass transition-all">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="javascript:void(0)" onclick="app.irAlMenu()"
+        class="flex items-center gap-3 group focus-apple rounded-lg p-1">
+        <div
+          class="w-9 h-9 rounded-xl bg-apple-dark text-white flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
+          <i class="fa-solid fa-graduation-cap text-base"></i>
+        </div>
+        <div>
+          <span class="text-sm font-semibold text-apple-dark tracking-tight block leading-tight">Simulador</span>
+          <span class="text-[11px] text-apple-subtext font-normal tracking-tight block leading-tight">Application
+            Track</span>
+        </div>
+      </a>
+
+      <!-- Navegación Principal -->
+      <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80 text-xs">
+        <button id="nav-examenes" onclick="app.cambiarVistaPrincipal('examenes')"
+          class="px-3 py-1.5 rounded-lg font-medium transition-all bg-white shadow-xs text-apple-dark">
+          <i class="fa-solid fa-book-open mr-1.5 text-apple-blue text-[10px]"></i> Exámenes
+        </button>
+<!--         <button id="nav-preguntas" onclick="app.cambiarVistaPrincipal('preguntas')"
+          class="px-3 py-1.5 rounded-lg font-medium transition-all text-apple-subtext hover:text-apple-dark">
+          <i class="fa-solid fa-pen-to-square mr-1.5 text-amber-500 text-[10px]"></i> Preguntas
+        </button> -->
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- CONTENEDOR PRINCIPAL: EXÁMENES -->
+    <div id="contenedor-principal-examenes">
+      <!-- ==========================================
+             VISTA 1: MENÚ Y SELECCIÓN DE EXÁMENES
+             ========================================== -->
+      <section id="vista-menu" class="space-y-10">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold tracking-tight text-apple-dark">Guía Exámenes 2025</h2>
+            <span class="text-xs text-apple-subtext font-medium">4 Módulos disponibles</span>
+          </div>
+
+          <div id="grid-examenes" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Las tarjetas se generan dinámicamente -->
+          </div>
+        </div>
+
+        <div class="pt-6 space-y-4">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-apple-border pb-3">
+            <div>
+              <h2 class="text-xl font-bold tracking-tight text-apple-dark">Historial de Intentos</h2>
+              <p class="text-xs text-apple-subtext">Registros conservados localmente en este navegador</p>
+            </div>
+            <div class="flex items-center gap-2" id="contenedor-acciones-historial">
+              <button onclick="app.exportarHistorialJSON()"
+                class="px-3.5 py-1.5 rounded-xl border border-apple-border hover:bg-white text-xs font-medium text-apple-dark transition-all flex items-center gap-2 focus-apple shadow-xs">
+                <i class="fa-solid fa-download text-apple-subtext"></i> Exportar Historial JSON
+              </button>
+<!--               <button onclick="app.confirmarBorradoHistorial()"
+                class="px-3.5 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-medium transition-all flex items-center gap-2 focus-apple">
+                <i class="fa-regular fa-trash-can"></i> Limpiar
+              </button> -->
+            </div>
+          </div>
+
+          <!-- Tabla / Contenedor de historial -->
+          <div class="bg-apple-card border border-apple-border rounded-2xl overflow-hidden shadow-xs">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm" id="tabla-historial">
+                <thead
+                  class="bg-slate-50 border-b border-apple-border text-[11px] font-semibold text-apple-subtext uppercase tracking-wider">
+                  <tr>
+                    <th scope="col" class="py-3.5 px-4">Examen</th>
+                    <th scope="col" class="py-3.5 px-4">Fecha y Hora</th>
+                    <th scope="col" class="py-3.5 px-4">Puntaje</th>
+                    <th scope="col" class="py-3.5 px-4">Estado</th>
+                    <th scope="col" class="py-3.5 px-4">Duración</th>
+                    <th scope="col" class="py-3.5 px-4 text-right">Detalle</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-historial" class="divide-y divide-apple-border/60">
+                  <!-- Se llena dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+            <div id="historial-vacio" class="hidden p-12 text-center space-y-2">
+              <div
+                class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-apple-subtext text-lg mb-3">
+                <i class="fa-regular fa-clock"></i>
+              </div>
+              <p class="text-sm font-semibold text-apple-dark">No hay intentos registrados aún</p>
+              <p class="text-xs text-apple-subtext max-w-sm mx-auto">Selecciona uno de los exámenes superiores para
+                comenzar tu primera evaluación diagnóstica.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+             VISTA 2: EJECUCIÓN DEL EXAMEN
+             ========================================== -->
+      <section id="vista-examen" class="hidden space-y-6">
+        <!-- Pantalla de Introducción / Instrucciones antes de iniciar -->
+        <div id="pantalla-instrucciones"
+          class="max-w-2xl mx-auto bg-apple-card border border-apple-border rounded-3xl p-6 sm:p-10 shadow-sm space-y-6">
+          <div class="flex items-center gap-4">
+            <div id="ins-icono"
+              class="w-14 h-14 rounded-2xl bg-blue-50 text-apple-blue flex items-center justify-center text-2xl flex-shrink-0">
+              <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <div>
+              <span id="ins-codigo"
+                class="text-xs font-bold uppercase tracking-wider text-apple-blue block">Examen</span>
+              <h2 id="ins-titulo" class="text-2xl font-bold text-apple-dark leading-tight">Título del Examen</h2>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200/70 text-center">
+            <div>
+              <span class="block text-[11px] text-apple-subtext font-medium uppercase">Tiempo</span>
+              <span id="ins-tiempo" class="text-base font-bold text-apple-dark">-- min</span>
+            </div>
+            <div>
+              <span class="block text-[11px] text-apple-subtext font-medium uppercase">Reactivos</span>
+              <span id="ins-preguntas" class="text-base font-bold text-apple-dark">--</span>
+            </div>
+            <div>
+              <span class="block text-[11px] text-apple-subtext font-medium uppercase">Mínimo</span>
+              <span id="ins-minimo" class="text-base font-bold text-apple-dark">--%</span>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-sm text-slate-600 leading-relaxed border-t border-b border-apple-border/70 py-4">
+            <h4 class="font-semibold text-apple-dark text-xs uppercase tracking-wider">Reglas del examen:</h4>
+            <ul class="space-y-2 list-disc list-inside text-xs sm:text-sm">
+              <li>El sistema seleccionará aleatoriamente la cantidad de reactivos indicada de tu banco de preguntas.
+              </li>
+              <li>Puedes navegar libremente entre preguntas antes de enviar la evaluación.</li>
+              <li>El temporizador se iniciará en cuanto presiones el botón de abajo.</li>
+              <li>Al terminarse el tiempo límite, el examen se enviará automáticamente.</li>
+              <li>Puedes usar las teclas <kbd class="px-1.5 py-0.5 bg-slate-200 rounded font-mono text-xs">1</kbd>-<kbd
+                  class="px-1.5 py-0.5 bg-slate-200 rounded font-mono text-xs">4</kbd> para seleccionar opciones y las
+                flechas para navegar.</li>
+            </ul>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <button onclick="app.irAlMenu()"
+              class="px-5 py-2.5 rounded-xl border border-apple-border text-sm font-medium text-apple-dark hover:bg-slate-50 transition-all focus-apple">
+              <i class="fa-solid fa-arrow-left mr-2"></i> Cancelar
+            </button>
+            <button onclick="app.iniciarExamenConfirmado()"
+              class="px-7 py-2.5 rounded-xl bg-apple-blue hover:bg-apple-hoverBlue text-white text-sm font-semibold transition-all shadow-sm shadow-blue-500/20 focus-apple">
+              Comenzar Ahora <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="panel-examen-activo" class="hidden space-y-6 max-w-4xl mx-auto">
+          <!-- Barra de Estado Flotante / Sticky -->
+          <div
+            class="bg-apple-card border border-apple-border rounded-2xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-4 sticky top-20 z-30 apple-glass">
+            <div class="flex items-center gap-3">
+              <span id="badge-pregunta-actual"
+                class="px-3 py-1 rounded-lg bg-slate-100 text-apple-dark text-xs font-semibold">
+                Pregunta 1 de X
+              </span>
+            </div>
+
+            <!-- Temporizador -->
+            <div class="flex items-center gap-2.5 bg-slate-100 px-3.5 py-1.5 rounded-xl border border-slate-200">
+              <i class="fa-regular fa-clock text-apple-blue text-sm"></i>
+              <span id="temporizador-display"
+                class="font-mono text-sm font-bold text-apple-dark tracking-wider">00:00</span>
+            </div>
+
+            <!-- Botón de cuadrícula rápida en móvil/escritorio -->
+            <button onclick="app.toggleDrawerGrid()"
+              class="px-3 py-1.5 rounded-xl border border-apple-border text-xs font-medium text-apple-dark hover:bg-slate-100 transition-all focus-apple flex items-center gap-2">
+              <i class="fa-solid fa-grip"></i>
+              <span>Navegador</span>
+            </button>
+          </div>
+
+          <!-- Barra de Progreso Superior -->
+          <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+            <div id="barra-progreso" class="bg-apple-blue h-full w-0 transition-all duration-300"></div>
+          </div>
+
+          <!-- Cajón de cuadrícula de preguntas (desplegable) -->
+          <div id="drawer-grid"
+            class="hidden bg-apple-card border border-apple-border rounded-2xl p-4 shadow-xs space-y-3">
+            <div class="flex items-center justify-between text-xs text-apple-subtext font-medium">
+              <span>Mapa de preguntas</span>
+              <div class="flex items-center gap-3">
+                <span class="flex items-center gap-1"><span
+                    class="w-2.5 h-2.5 rounded-full bg-apple-blue inline-block"></span> Respondida</span>
+                <span class="flex items-center gap-1"><span
+                    class="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-300 inline-block"></span>
+                  Pendiente</span>
+              </div>
+            </div>
+            <div id="grid-botones-preguntas" class="flex flex-wrap gap-2 pt-1">
+              <!-- Botones numéricos 1, 2, 3... -->
+            </div>
+          </div>
+
+          <!-- Tarjeta de Pregunta Activa -->
+          <div id="tarjeta-pregunta"
+            class="bg-apple-card border border-apple-border rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+            <div class="space-y-3">
+              <h3 id="texto-pregunta" class="text-lg sm:text-xl font-semibold text-apple-dark leading-snug">
+                Texto descriptivo de la pregunta...
+              </h3>
+              <p id="indicacion-pregunta" class="text-xs text-apple-subtext italic"></p>
+            </div>
+
+            <!-- Contenedor de Imagen de Pregunta (con fallback accesible) -->
+            <div id="contenedor-imagen-pregunta"
+              class="hidden rounded-2xl overflow-hidden border border-apple-border bg-slate-50 relative max-h-80 flex items-center justify-center p-2">
+              <img id="imagen-pregunta" src="" alt="Diagrama ilustrativo para la pregunta"
+                class="max-h-72 w-auto object-contain rounded-xl" onerror="app.manejarFalloImagen()">
+              <div id="error-imagen-pregunta" class="hidden p-6 text-center text-xs text-apple-subtext space-y-1">
+                <i class="fa-regular fa-image text-slate-400 text-xl block mb-1"></i>
+                <span class="font-medium text-slate-500">Recurso de imagen no localizado</span>
+              </div>
+            </div>
+
+            <!-- Opciones de Respuesta -->
+            <fieldset class="space-y-3" id="contenedor-opciones" role="radiogroup" aria-label="Opciones de respuesta">
+              <!-- Renderizado dinámico de opciones -->
+            </fieldset>
+          </div>
+
+          <div class="flex items-center justify-between gap-4 pt-2">
+            <button id="btn-previa" onclick="app.anteriorPregunta()"
+              class="px-5 py-2.5 rounded-xl border border-apple-border bg-white text-sm font-medium text-apple-dark hover:bg-slate-50 transition-all focus-apple shadow-xs flex items-center gap-2">
+              <i class="fa-solid fa-chevron-left text-xs"></i> Anterior
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button id="btn-siguiente" onclick="app.siguientePregunta()"
+                class="px-6 py-2.5 rounded-xl bg-apple-blue hover:bg-apple-hoverBlue text-white text-sm font-semibold transition-all shadow-sm shadow-blue-500/20 focus-apple flex items-center gap-2">
+                <span>Siguiente</span> <i class="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+              <button id="btn-finalizar" onclick="app.solicitarConfirmacionFinalizar()"
+                class="hidden px-7 py-2.5 rounded-xl bg-apple-green hover:bg-green-600 text-white text-sm font-semibold transition-all shadow-sm shadow-green-500/20 focus-apple flex items-center gap-2">
+                <i class="fa-solid fa-check"></i> Finalizar Examen
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+             VISTA 3: RESULTADOS Y REVISIÓN DETALLADA
+             ========================================== -->
+      <section id="vista-resultados" class="hidden space-y-8 max-w-4xl mx-auto">
+        <!-- Tarjeta Hero de Calificación -->
+        <div id="hero-resultado"
+          class="bg-apple-card border border-apple-border rounded-3xl p-6 sm:p-10 shadow-sm text-center space-y-6">
+          <div id="badge-estado-icono"
+            class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl shadow-xs">
+            <!-- Icono de aprobado o no aprobado -->
+          </div>
+
+          <div class="space-y-1">
+            <span id="res-codigo-examen"
+              class="text-xs font-bold uppercase tracking-wider text-apple-subtext block">101</span>
+            <h2 id="res-estado-texto" class="text-2xl sm:text-3xl font-extrabold text-apple-dark tracking-tight">¡Examen
+              Aprobado!</h2>
+            <p id="res-mensaje-sub" class="text-sm text-apple-subtext max-w-md mx-auto">Has superado satisfactoriamente
+              el puntaje mínimo requerido.</p>
+          </div>
+
+          <!-- Estadísticas -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto pt-2">
+            <div class="p-3.5 bg-slate-50 border border-slate-200/70 rounded-2xl text-center">
+              <span class="text-[11px] font-medium text-apple-subtext uppercase block">Puntaje</span>
+              <span id="res-stat-score" class="text-xl font-bold text-apple-dark">0%</span>
+            </div>
+            <div class="p-3.5 bg-slate-50 border border-slate-200/70 rounded-2xl text-center">
+              <span class="text-[11px] font-medium text-apple-subtext uppercase block">Aciertos</span>
+              <span id="res-stat-correctas" class="text-xl font-bold text-apple-dark">0 / 0</span>
+            </div>
+            <div class="p-3.5 bg-slate-50 border border-slate-200/70 rounded-2xl text-center">
+              <span class="text-[11px] font-medium text-apple-subtext uppercase block">Mínimo</span>
+              <span id="res-stat-minimo" class="text-xl font-bold text-apple-dark">70%</span>
+            </div>
+            <div class="p-3.5 bg-slate-50 border border-slate-200/70 rounded-2xl text-center">
+              <span class="text-[11px] font-medium text-apple-subtext uppercase block">Tiempo</span>
+              <span id="res-stat-tiempo" class="text-xl font-bold text-apple-dark">00:00</span>
+            </div>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <button onclick="app.irAlMenu()"
+              class="px-5 py-2.5 rounded-xl border border-apple-border text-xs sm:text-sm font-medium text-apple-dark hover:bg-slate-50 transition-all focus-apple">
+              <i class="fa-solid fa-house mr-2"></i> Menú Principal
+            </button>
+            <button id="btn-reintentar" onclick="app.reintentarExamenActual()"
+              class="px-6 py-2.5 rounded-xl bg-apple-blue hover:bg-apple-hoverBlue text-white text-xs sm:text-sm font-semibold transition-all shadow-sm focus-apple">
+              <i class="fa-solid fa-rotate-right mr-2"></i> Repetir Examen
+            </button>
+          </div>
+        </div>
+
+        <!-- Navegación Sticky de Resultados -->
+        <div
+          class="bg-apple-card border border-apple-border rounded-2xl p-4 shadow-xs flex flex-col gap-3 sticky top-20 z-30 apple-glass">
+          <div class="flex items-center justify-between text-xs text-apple-subtext font-medium">
+            <span>Navegación de preguntas</span>
+            <div class="flex items-center gap-3">
+              <span class="flex items-center gap-1"><span
+                  class="w-2.5 h-2.5 rounded-full bg-apple-green inline-block"></span> Correcta</span>
+              <span class="flex items-center gap-1"><span
+                  class="w-2.5 h-2.5 rounded-full bg-apple-red inline-block"></span> Incorrecta</span>
+            </div>
+          </div>
+          <div id="grid-botones-resultados" class="flex flex-wrap gap-2 pt-1">
+            <!-- Se inyecta dinámicamente -->
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xl font-bold text-apple-dark tracking-tight">Revisión de Reactivos</h3>
+            <span class="text-xs text-apple-subtext font-medium">Desglose de respuestas</span>
+          </div>
+
+          <div id="contenedor-revision-preguntas" class="space-y-4">
+            <!-- Las tarjetas de cada pregunta con respuestas se insertan aquí -->
+          </div>
+        </div>
+      </section>
+    </div> <!-- FIN CONTENEDOR PRINCIPAL: EXÁMENES -->
+
+    <!-- CONTENEDOR PRINCIPAL: CRUD PREGUNTAS -->
+    <div id="contenedor-principal-crud" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-apple-border pb-4">
+        <div>
+          <h2 class="text-xl font-bold tracking-tight text-apple-dark">Gestión de Preguntas</h2>
+          <p class="text-xs text-apple-subtext">Administra el banco de preguntas y exporta el archivo JSON modificado
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <label
+            class="px-3.5 py-2 rounded-xl border border-apple-border hover:bg-slate-50 text-xs font-medium text-apple-dark transition-all cursor-pointer flex items-center gap-2">
+            <i class="fa-solid fa-upload text-apple-blue"></i> Importar JSON
+            <input type="file" id="file-import-json" accept=".json" class="hidden" onchange="app.importarJSON(event)">
+          </label>
+          <button onclick="app.exportarBancoJSON()"
+            class="px-3.5 py-2 rounded-xl bg-apple-blue hover:bg-apple-hoverBlue text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-2">
+            <i class="fa-solid fa-download"></i> Exportar JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Sidebar: Selector de Examen -->
+        <div class="lg:col-span-1 space-y-4">
+          <div class="bg-apple-card border border-apple-border rounded-2xl p-4 shadow-xs space-y-3">
+            <h3 class="text-sm font-semibold text-apple-dark border-b border-apple-border pb-2">Seleccionar Módulo</h3>
+            <div id="crud-lista-examenes" class="space-y-1">
+              <!-- Se llena dinámicamente -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content: Lista de Preguntas -->
+        <div class="lg:col-span-3 space-y-4">
+          <div class="bg-apple-card border border-apple-border rounded-2xl shadow-xs overflow-hidden">
+            <div class="p-4 border-b border-apple-border bg-slate-50 flex items-center justify-between">
+              <div>
+                <h3 id="crud-titulo-examen" class="text-sm font-semibold text-apple-dark">Selecciona un examen</h3>
+                <span id="crud-contador-preguntas" class="text-[11px] text-apple-subtext">0 preguntas en el banco</span>
+              </div>
+              <button id="btn-nueva-pregunta" onclick="app.abrirModalEdicionPregunta(null)"
+                class="hidden px-3.5 py-1.5 rounded-lg bg-apple-blue text-white text-xs font-semibold hover:bg-apple-hoverBlue transition-all shadow-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-plus"></i> Añadir Pregunta
+              </button>
+            </div>
+
+            <div id="crud-lista-preguntas" class="divide-y divide-apple-border/60 max-h-[600px] overflow-y-auto">
+              <div class="p-8 text-center text-apple-subtext text-sm">
+                <i class="fa-solid fa-arrow-pointer text-2xl mb-2 text-slate-300"></i>
+                <p>Selecciona un módulo a la izquierda para ver y editar sus preguntas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- FIN CONTENEDOR PRINCIPAL: CRUD PREGUNTAS -->
+
+  </main>
+
+  <footer class="mt-auto border-t border-apple-border py-6 bg-white text-center text-xs text-apple-subtext">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-[11px]">101 Fundamentals • 240 Modeling • 241 Management • 242 Workflows</p>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+       MODALES Y NOTIFICACIONES
+       ========================================== -->
+  <div id="modal-confirmacion"
+    class="fixed inset-0 z-[60] hidden bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div
+      class="bg-white border border-apple-border max-w-md w-full rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 animate-scaleUp">
+      <div class="flex items-center gap-3.5">
+        <div id="modal-icono"
+          class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg flex-shrink-0">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h4 id="modal-titulo" class="text-base font-bold text-apple-dark leading-tight">Confirmar Acción</h4>
+          <p id="modal-subtitulo" class="text-xs text-apple-subtext">Verifica antes de continuar</p>
+        </div>
+      </div>
+
+      <p id="modal-mensaje" class="text-sm text-slate-600 leading-relaxed">
+        ¿Estás seguro de realizar esta acción?
+      </p>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button id="modal-btn-cancelar"
+          class="px-4 py-2 rounded-xl border border-apple-border text-xs font-semibold text-apple-dark hover:bg-slate-50 transition-all focus-apple">
+          Cancelar
+        </button>
+        <button id="modal-btn-aceptar"
+          class="px-5 py-2 rounded-xl bg-apple-blue hover:bg-apple-hoverBlue text-white text-xs font-semibold transition-all focus-apple shadow-xs">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Editar/Crear Pregunta (CRUD) -->
+  <div id="modal-edicion-pregunta"
+    class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white border border-apple-border max-w-2xl w-full rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
+
+      <div class="p-5 border-b border-apple-border flex items-center justify-between">
+        <h4 id="modal-edicion-titulo" class="text-base font-bold text-apple-dark">Editar Pregunta</h4>
+        <button onclick="app.cerrarModalEdicionPregunta()"
+          class="text-apple-subtext hover:text-apple-dark transition-colors">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 flex-1">
+        <input type="hidden" id="edit-pregunta-id">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-[11px] font-bold uppercase text-apple-subtext tracking-wider">Tipo de Pregunta <span
+                class="text-red-500">*</span></label>
+            <select id="edit-pregunta-tipo" onchange="app.cambiarTipoPreguntaCrud()"
+              class="w-full p-2.5 border border-slate-300 rounded-xl text-sm text-apple-dark focus:border-apple-blue focus:ring-1 focus:ring-apple-blue outline-none transition-all bg-white">
+              <option value="opcion_multiple">Opción Múltiple (Radio)</option>
+              <option value="seleccion_multiple">Selección Múltiple (Checkbox)</option>
+            </select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-[11px] font-bold uppercase text-apple-subtext tracking-wider">Imagen (Opcional)</label>
+            <div class="flex items-center gap-2">
+              <input type="text" id="edit-pregunta-imagen"
+                class="flex-1 p-2.5 border border-slate-300 rounded-xl text-sm text-slate-500 bg-slate-50 outline-none"
+                placeholder="assets/img/archivo.png" readonly>
+              <label
+                class="px-3 py-2.5 bg-white border border-apple-border rounded-xl text-xs font-semibold text-apple-blue hover:bg-blue-50 cursor-pointer transition-all whitespace-nowrap">
+                <i class="fa-solid fa-folder-open mr-1"></i> Explorar
+                <input type="file" id="edit-pregunta-imagen-file" accept="image/*" class="hidden"
+                  onchange="app.procesarArchivoImagen(event)">
+              </label>
+              <button type="button" onclick="app.limpiarImagenCrud()"
+                class="w-10 h-[42px] rounded-xl border border-slate-300 text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 flex items-center justify-center transition-all"
+                title="Eliminar imagen">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">Nota: Copia manualmente la imagen a la carpeta <code
+                class="bg-slate-100 px-1 rounded">assets/img</code>.</p>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-[11px] font-bold uppercase text-apple-subtext tracking-wider">Texto de la pregunta <span
+              class="text-red-500">*</span></label>
+          <textarea id="edit-pregunta-texto" rows="3"
+            class="w-full p-3 border border-slate-300 rounded-xl text-sm text-apple-dark focus:border-apple-blue focus:ring-1 focus:ring-apple-blue outline-none transition-all"
+            placeholder="Ej. ¿Cuál es el propósito de...?"></textarea>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-[11px] font-bold uppercase text-apple-subtext tracking-wider">Opciones de Respuesta <span
+                class="text-red-500">*</span></label>
+            <button onclick="app.agregarNuevaOpcionCrud()"
+              class="px-3 py-1 bg-white border border-apple-border rounded-lg text-[11px] font-semibold text-apple-blue hover:bg-blue-50 transition-colors flex items-center gap-1.5">
+              <i class="fa-solid fa-plus"></i> Añadir Opción
+            </button>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3" id="edit-contenedor-opciones">
+            <!-- Opciones se inyectan aquí -->
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-[11px] font-bold uppercase text-apple-subtext tracking-wider">Explicación Técnica
+            (Opcional)</label>
+          <textarea id="edit-pregunta-explicacion" rows="2"
+            class="w-full p-3 border border-slate-300 rounded-xl text-sm text-apple-dark focus:border-apple-blue focus:ring-1 focus:ring-apple-blue outline-none transition-all"
+            placeholder="Ej. La opción correcta es... porque..."></textarea>
+        </div>
+      </div>
+
+      <div class="p-5 border-t border-apple-border bg-slate-50 rounded-b-3xl flex items-center justify-end gap-3">
+        <button onclick="app.cerrarModalEdicionPregunta()"
+          class="px-4 py-2 rounded-xl border border-apple-border bg-white text-xs font-semibold text-apple-dark hover:bg-slate-50 transition-all focus-apple">
+          Cancelar
+        </button>
+        <button onclick="app.guardarPreguntaEdicion()"
+          class="px-5 py-2 rounded-xl bg-apple-blue hover:bg-apple-hoverBlue text-white text-xs font-semibold transition-all focus-apple shadow-xs flex items-center gap-2">
+          <i class="fa-solid fa-save"></i> Guardar Cambios
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-notificacion"
+    class="fixed bottom-6 right-6 z-[70] hidden bg-apple-dark text-white text-xs font-medium px-4 py-3 rounded-2xl shadow-lg border border-slate-700 flex items-center gap-2.5">
+    <i id="toast-icono" class="fa-solid fa-circle-check text-apple-green"></i>
+    <span id="toast-texto">Operación completada</span>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       DATOS EMBEBIDOS DE PRUEBA (BANCO DE PREGUNTAS INICIAL)
+       Estos datos son el estado inicial y se cargarán en localStorage si no
+       existe un banco modificado por el usuario previamente.
+       ========================================================================== */
+    const BANCO_EXAMENES_DEFAULT = {
+      "101": {
+        "id": "101",
+        "nombre": "Solution Fundamentals 101",
+        "version": "1.0.0",
+        "instrucciones": "In this course, you will discover how STEP can be used to address business problems through a hands on overview of the basic functionalities of the STEP Multidomain MDM platform.",
+        "datos_generales": {
+          "tiempo_minutos": 60,
+          "total_preguntas": 40,
+          "minimo_aprobar": 80,
+          "temas": [
+            "MDM System data structure",
+            "Capture Data",
+            "Mainting Data",
+            "Distribute Data",
+            "Customer Master Data Management",
+            "Workbench"
+          ]
+        },
+        "preguntas": [
+          {
+            "id": "101-p1",
+            "texto": "Which object super types are available in STEP?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Products"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Classifications"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Assets"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflows"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Entities"
+              },
+              {
+                "id": "opt_f",
+                "texto": "Publications"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c",
+              "opt_e",
+              "opt_f"
+            ],
+            "explicacion": "In Stibo's MDM Solution, we have 3 main Super Types: Primary Product Hierarchy (blue folders), Alternate Classifications Hierarchy (yellow folders), and Entities (white folders)."
+          },
+          {
+            "id": "101-p2",
+            "texto": "What is an Object Type?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A specific object instance"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A structure that defines characteristics and rules for objects"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A workflow state"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A reference relationship"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nObject Types and Hierarchies"
+          },
+          {
+            "id": "101-p1789405472267",
+            "texto": "What is the difference between an Object Type and an Instance?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "There is no difference"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Object Types are workflows and Instances are products"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Object Types define structure; Instances are actual created objects"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Object Types are only used for entities."
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nObject Types and Hierarchies"
+          },
+          {
+            "id": "101-p1789405522488",
+            "texto": "Where are Object Types created and maintained?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product Tab"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Web UI Dashboard"
+              },
+              {
+                "id": "opt_c",
+                "texto": "System Setup in Workbench"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Approval Workspace"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nObject Types and Hierarchies"
+          },
+          {
+            "id": "101-p1789405570484",
+            "texto": "What is the Primary Product Hierarchy (PPH)?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A hierarchy used only for assets"
+              },
+              {
+                "id": "opt_b",
+                "texto": "An alternate classification structure"
+              },
+              {
+                "id": "opt_c",
+                "texto": "The main hierarchy where products are organized with parent-child relationships"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A workflow hierarchy"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nPrimary Product Hierarchy"
+          },
+          {
+            "id": "101-p1789405626810",
+            "texto": "What is a Classification?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A workflow"
+              },
+              {
+                "id": "opt_b",
+                "texto": "An alternate hierarchy used to organize information differently from the PPH"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A supplier portal"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A publication section"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nAlternate Classification Hierarchy"
+          },
+          {
+            "id": "101-p1789405667316",
+            "texto": "Which color represents the Alternate Classification Hierarchy?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Blue"
+              },
+              {
+                "id": "opt_b",
+                "texto": "White"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Green"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Yellow"
+              }
+            ],
+            "respuesta_correcta": "opt_d",
+            "explicacion": "Topic\nAlternate Classification Hierarchy"
+          },
+          {
+            "id": "101-p1789405743878",
+            "texto": "What can be stored in Classifications?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Assets"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Import configurations"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Export configurations"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Alternate categorizations"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Workflows states"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nAlternate Classification Hierarchy"
+          },
+          {
+            "id": "101-p1789405850364",
+            "texto": "What is Attribute Inheritance?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A workflow assignment"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A way to copy users"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Specification attributes flowing from parent products to child products"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Export scheduling"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nAttribute Inheritance"
+          },
+          {
+            "id": "101-p1789405895811",
+            "texto": "Can an inherited attribute value be overridden?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Only in Approved Workspace"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Only for Description Attributes"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nAttribute Inheritance"
+          },
+          {
+            "id": "101-p1789405993550",
+            "texto": "What is an Attribute?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A hierarchy"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A characteristic or detailed piece of information about an object"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A workflow"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A reference type"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nAttributes"
+          },
+          {
+            "id": "101-p1789406037400",
+            "texto": "What are the two attribute types available in STEP?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product and Classification"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Internal and External"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Description and Specification"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Local and Global"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nAttributes"
+          },
+          {
+            "id": "101-p1789406118352",
+            "texto": "Which statement describes Description Attributes?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Support inheritance"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Product-only attributes"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Hold object-specific information and do not support inheritance"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Used only for assets"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nDescription Attributes"
+          },
+          {
+            "id": "101-p1789411780685",
+            "texto": "Which statement describes Specification Attributes?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Used on Products and support inheritance"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Only used for Entities"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Do not support inheritance"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Used only for Classifications"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nSpecification Attributes"
+          },
+          {
+            "id": "101-p1789411830652",
+            "texto": "Which attribute type supports inheritance?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Description Attributes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Specification Attributes"
+              },
+              {
+                "id": "opt_c",
+                "texto": "LOV Attributes"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Publication Attributes"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nSpecification Attributes"
+          },
+          {
+            "id": "101-p1789411879932",
+            "texto": "Which attribute type can be used on all STEP object types?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Description Attributes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Specification Attributes"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Product Attributes"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflow Attributes"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nDescription Attributes"
+          },
+          {
+            "id": "101-p1789411953979",
+            "texto": "Which are examples of Specification Attributes?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Color"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Weight"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Warranty"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Product Description"
+              },
+              {
+                "id": "opt_e",
+                "texto": "EAN Number"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nSpecification Attributes"
+          },
+          {
+            "id": "101-p1789412276424",
+            "texto": "Which are examples of Description Attributes?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Keywords"
+              },
+              {
+                "id": "opt_b",
+                "texto": "EAN Number"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Manufacturing Code"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Object Name"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Warranty"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nDescription Attributes"
+          },
+          {
+            "id": "101-p1789412331419",
+            "texto": "What is a Dimension-Dependent Attribute?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "An attribute that changes according to language or country context"
+              },
+              {
+                "id": "opt_b",
+                "texto": "An attribute used only in workflows"
+              },
+              {
+                "id": "opt_c",
+                "texto": "An export setting"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A reference type"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nContexts"
+          },
+          {
+            "id": "101-p1789412386477",
+            "texto": "What is a Validation Base Type?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A workflow rule"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A hierarchy structure"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A configuration that determines allowed data formats for attributes"
+              },
+              {
+                "id": "opt_d",
+                "texto": "An export profile"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nValidation Base Types"
+          },
+          {
+            "id": "101-p1789413034005",
+            "texto": "Why are Validation Base Types important?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "They improve UI appearance"
+              },
+              {
+                "id": "opt_b",
+                "texto": "They ensure data quality"
+              },
+              {
+                "id": "opt_c",
+                "texto": "They control workflow ownership"
+              },
+              {
+                "id": "opt_d",
+                "texto": "They approve products"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nValidation Base Types"
+          },
+          {
+            "id": "101-p1789413142807",
+            "texto": "Which two dimensions are commonly configured in STEP?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product and Asset"
+              },
+              {
+                "id": "opt_b",
+                "texto": "User and Role"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Language and Country"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflow and State"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nDimensions and Contexts"
+          },
+          {
+            "id": "101-p1789413219087",
+            "texto": "What is a Context?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A workflow stage"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A combination of dimension points"
+              },
+              {
+                "id": "opt_c",
+                "texto": "An object type"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A LOV"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nContexts"
+          },
+          {
+            "id": "101-p1789413263818",
+            "texto": "Which is an example of multilingual data?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product available in multiple categories"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A product description displayed in English and French depending on the context"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Multiple workflows assigned"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Exporting to different files"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nTranslations"
+          },
+          {
+            "id": "101-p1789413295144",
+            "texto": "Can images be configured differently according to Context?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nTranslations"
+          },
+          {
+            "id": "101-p1789413334694",
+            "texto": "What happens when a product is approved?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "It is deleted from Main Workspace"
+              },
+              {
+                "id": "opt_b",
+                "texto": "It moves to Approved Workspace"
+              },
+              {
+                "id": "opt_c",
+                "texto": "It becomes an Entity"
+              },
+              {
+                "id": "opt_d",
+                "texto": "It is exported automatically"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nApproval"
+          },
+          {
+            "id": "101-p1789413378097",
+            "texto": "What is the primary purpose of Approval?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "To create workflows"
+              },
+              {
+                "id": "opt_b",
+                "texto": "To create exports"
+              },
+              {
+                "id": "opt_c",
+                "texto": "To assign users"
+              },
+              {
+                "id": "opt_d",
+                "texto": "To make data available to downstream systems"
+              }
+            ],
+            "respuesta_correcta": "opt_d",
+            "explicacion": "Topic\nApproval"
+          },
+          {
+            "id": "101-p1789413419728",
+            "texto": "What is the Main Workspace?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Read-only workspace"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Export repository"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Workspace where data is maintained and edited"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflow area"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nWorkspaces"
+          },
+          {
+            "id": "101-p1789413462387",
+            "texto": "Which statement best describes the Approved Workspace?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Stores approved data and is read-only"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Used only for imports"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Creates business rules"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Used to store LOVs"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nWorkspaces"
+          },
+          {
+            "id": "101-p1789413493084",
+            "texto": "Can users modify data directly in the Approved Workspace?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nWorkspaces"
+          },
+          {
+            "id": "101-p1789413542519",
+            "texto": "What happens to revisions when data is approved?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Revisions are deleted"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A new revision is created"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Nothing happens"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A workflow starts automatically"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nApproval"
+          },
+          {
+            "id": "101-p1789413591845",
+            "texto": "What is a Workflow?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A hierarchy structure"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A process controlling task progression through stages"
+              },
+              {
+                "id": "opt_c",
+                "texto": "An integration endpoint"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A publication"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nWorkflow"
+          },
+          {
+            "id": "101-p1789413674328",
+            "texto": "What are the three fundamental components of a Workflow?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "State"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Transition"
+              },
+              {
+                "id": "opt_c",
+                "texto": "LOV"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Assignee"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Context"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nWorkflow"
+          },
+          {
+            "id": "101-p1789421444103",
+            "texto": "What is a State in a Workflow?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "The user responsible"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A stage where work is performed"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A hierarchy level"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A product category"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nWorkflow"
+          },
+          {
+            "id": "101-p1789421565320",
+            "texto": "What is a Transition?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A movement of an object from one workflow state to another"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A hierarchy level"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A reference type"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A validation rule"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nWorkflow"
+          },
+          {
+            "id": "101-p1789421721859",
+            "texto": "What is an Assignee in a Workflow?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "The system administrator"
+              },
+              {
+                "id": "opt_b",
+                "texto": "The object being processed"
+              },
+              {
+                "id": "opt_c",
+                "texto": "The user or group responsible for completing a task"
+              },
+              {
+                "id": "opt_d",
+                "texto": "The workflow state"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nWorkflow"
+          },
+          {
+            "id": "101-p1789421831515",
+            "texto": "Where can Workflows be created?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Web UI only"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Workbench only"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Approval Workspace"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Product Tab"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nWorkflow"
+          },
+          {
+            "id": "101-p1789421899637",
+            "texto": "Can users access workflows from the Web UI?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nWorkflow"
+          },
+          {
+            "id": "101-p1789422090152",
+            "texto": "What is the purpose of an Import Configuration File?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "To create workflows"
+              },
+              {
+                "id": "opt_b",
+                "texto": "To predefine import mappings, transformations and settings"
+              },
+              {
+                "id": "opt_c",
+                "texto": "To schedule exports"
+              },
+              {
+                "id": "opt_d",
+                "texto": "To create users"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nImports"
+          },
+          {
+            "id": "101-p1789422200451",
+            "texto": "After executing an import, where should you verify the process status?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product Tab"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Workflow Dashboard"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Background Process"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Approved Workspace"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nImports"
+          },
+          {
+            "id": "101-p1789422285765",
+            "texto": "Where are import and export errors displayed?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Main Workspace"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Product Tab"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Background Process"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflow State"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nImports and Exports"
+          },
+          {
+            "id": "101-p1789422649246",
+            "texto": "What is the purpose of an Inbound Integration Endpoint (IIEP)?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Export data to external systems"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Import data from external systems into STEP"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Execute workflows"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Create references"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nIntegration Endpoints"
+          },
+          {
+            "id": "101-p1789422843396",
+            "texto": "Can an Inbound Integration Endpoint schedule imports?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nIntegration Endpoints"
+          },
+          {
+            "id": "101-p1789422968305",
+            "texto": "What is the purpose of an Outbound Integration Endpoint (OIEP)?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Import data into STEP"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Manage workflows"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Export data to external systems"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Create object types"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nIntegration Endpoints"
+          },
+          {
+            "id": "101-p1789423112145",
+            "texto": "Can an Outbound Integration Endpoint schedule exports?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nIntegration Endpoints"
+          },
+          {
+            "id": "101-p1789423197266",
+            "texto": "What is the native XML format used by STEP?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "SOAP XML"
+              },
+              {
+                "id": "opt_b",
+                "texto": "STEPXML"
+              },
+              {
+                "id": "opt_c",
+                "texto": "MDMXML"
+              },
+              {
+                "id": "opt_d",
+                "texto": "ProductXML"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nIntegration"
+          },
+          {
+            "id": "101-p1789423299417",
+            "texto": "Which export methods are available in Web UI?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Export With Configuration"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Export Current View"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Map the Export Yourself"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Export Wizard Plus"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c"
+            ],
+            "explicacion": "Topic\nExports"
+          },
+          {
+            "id": "101-p1789423390408",
+            "texto": "What can be configured using Export Manager?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Objects to export"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Data to include"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Output format"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Scheduled exports"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Workflow Assignee"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nExport Manager"
+          },
+          {
+            "id": "101-p1789423478545",
+            "texto": "What is a Business Rule?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A hierarchy structure"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A configurable rule used to validate or manipulate data"
+              },
+              {
+                "id": "opt_c",
+                "texto": "An export file"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A workflow state"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nBusiness Rules"
+          },
+          {
+            "id": "101-p1789423579809",
+            "texto": "Where can Business Rules be used?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Workflow States"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Workflow Transitions"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Imports"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Exports"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Integrations"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c",
+              "opt_d",
+              "opt_e"
+            ],
+            "explicacion": "Topic\nBusiness Rules"
+          },
+          {
+            "id": "101-p1789423634395",
+            "texto": "What does a Condition Business Rule return?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Attribute Values"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Approved Records"
+              },
+              {
+                "id": "opt_c",
+                "texto": "True or False"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflow States"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nBusiness Rules"
+          },
+          {
+            "id": "101-p1789423663729",
+            "texto": "Does a Condition Business Rule modify data?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nBusiness Rules"
+          },
+          {
+            "id": "101-p1789423705188",
+            "texto": "What is a Product Reference Type?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product-to-Classification"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Product-to-Product"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Product-to-Asset"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Product-to-Entity"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nReferences"
+          },
+          {
+            "id": "101-p1789423977892",
+            "texto": "What is a Reference?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A hierarchy level"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A connection between two objects"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A workflow state"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A publication section"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nReferences"
+          },
+          {
+            "id": "101-p1789424487029",
+            "texto": "What is an Image and Document Reference Type?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product-to-Asset"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Asset-to-Asset"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Product-to-Product"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Product-to-Entity"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nReferences"
+          },
+          {
+            "id": "101-p1789424607626",
+            "texto": "What is a Classification Reference Type?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product-to-Product"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Product-to-Asset"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Product-to-Workflow"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Product-to-Classification"
+              }
+            ],
+            "respuesta_correcta": "opt_d",
+            "explicacion": "Topic\nReferences"
+          },
+          {
+            "id": "101-p1789424712304",
+            "texto": "What is the difference between References and Referenced By?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "References show sources and Referenced By shows targets"
+              },
+              {
+                "id": "opt_b",
+                "texto": "References show targets and Referenced By shows sources"
+              },
+              {
+                "id": "opt_c",
+                "texto": "There is no difference"
+              },
+              {
+                "id": "opt_d",
+                "texto": "References are only used for Products"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nReferences"
+          },
+          {
+            "id": "101-p1789424805013",
+            "texto": "What is PDX Onboarding?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A solution used to export data to marketplaces"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A solution used to collect product data from suppliers"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A workflow tool"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A hierarchy"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nPDX Onboarding"
+          },
+          {
+            "id": "101-p1789425053283",
+            "texto": "Who owns the PDX Onboarding platform?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Supplier"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Consumer"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Retailer"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Marketplace"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nPDX Onboarding"
+          },
+          {
+            "id": "101-p1789425108301",
+            "texto": "Can PDX Onboarding perform attribute mappings and value transformations?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nPDX Onboarding"
+          },
+          {
+            "id": "101-p1789425192813",
+            "texto": "What is PDX Syndication?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A workflow module"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A solution used to distribute product data to marketplaces"
+              },
+              {
+                "id": "opt_c",
+                "texto": "An entity model"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A validation framework"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nPDX Syndication"
+          },
+          {
+            "id": "101-p1789425288130",
+            "texto": "What must happen before product data can be syndicated?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Data must be approved"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A workflow must be deleted"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Data must be archived"
+              },
+              {
+                "id": "opt_d",
+                "texto": "An LOV must be created"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nPDX Syndication"
+          },
+          {
+            "id": "101-p1789425380823",
+            "texto": "Which data models are preconfigured in STEP CMDM?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "ERP and CRM"
+              },
+              {
+                "id": "opt_b",
+                "texto": "B2B and B2C"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Supplier and Retailer"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Customer and Product"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nEntities Data Model"
+          },
+          {
+            "id": "101-p1789425494088",
+            "texto": "What is an Entity?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A product category"
+              },
+              {
+                "id": "opt_b",
+                "texto": "An object used to model customer-related information"
+              },
+              {
+                "id": "opt_c",
+                "texto": "An asset type"
+              },
+              {
+                "id": "opt_d",
+                "texto": "An export definition"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Entities"
+          },
+          {
+            "id": "101-p1789425538441",
+            "texto": "Do Entities support inheritance?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Yes"
+              },
+              {
+                "id": "opt_b",
+                "texto": "No"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Entities"
+          },
+          {
+            "id": "101-p1789425606527",
+            "texto": "What can an Entity represent?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A Person"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A Customer"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A Location"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A Workflow"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c"
+            ],
+            "explicacion": "Entities"
+          },
+          {
+            "id": "101-p1789425692077",
+            "texto": "What is Geo Coding?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A workflow assignment"
+              },
+              {
+                "id": "opt_b",
+                "texto": "The addition of coordinates to addresses"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A matching algorithm"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A publication structure"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "CMDM"
+          },
+          {
+            "id": "101-p1789425772489",
+            "texto": "What is Deduplication (Matching and Linking)?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "The process of deleting records"
+              },
+              {
+                "id": "opt_b",
+                "texto": "The process of identifying duplicates and creating Golden Records"
+              },
+              {
+                "id": "opt_c",
+                "texto": "The process of exporting data"
+              },
+              {
+                "id": "opt_d",
+                "texto": "The process of approving data"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nMatching and Linking"
+          },
+          {
+            "id": "101-p1789425839296",
+            "texto": "Which implementation styles are available in CMDM?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Consolidation"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Centralized"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Coexistence"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Registry"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Approval"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nImplementation Styles"
+          },
+          {
+            "id": "101-p1789426019440",
+            "texto": "What is a List of Values (LOV)?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "A workflow state"
+              },
+              {
+                "id": "opt_b",
+                "texto": "A predefined list of valid attribute values"
+              },
+              {
+                "id": "opt_c",
+                "texto": "A type of hierarchy"
+              },
+              {
+                "id": "opt_d",
+                "texto": "A product classification"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nAttributes → Validation Base Types / LOV"
+          },
+          {
+            "id": "101-p1789426180080",
+            "texto": "How is a LOV configured in STEP?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "As part of Workflow configuration"
+              },
+              {
+                "id": "opt_b",
+                "texto": "As part of a Reference Type"
+              },
+              {
+                "id": "opt_c",
+                "texto": "As part of Attribute Validation"
+              },
+              {
+                "id": "opt_d",
+                "texto": "As part of User Privileges"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nAttributes / LOV"
+          },
+          {
+            "id": "101-p1789426289804",
+            "texto": "What does a Publication Type define?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product references"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Approval workflow states"
+              },
+              {
+                "id": "opt_c",
+                "texto": "The structure of a publication hierarchy"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Import configurations"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nPublication Types"
+          },
+          {
+            "id": "101-p1789487011259",
+            "texto": "Where should images and documents be stored in STEP?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Main Workspace"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Product Hierarchy"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Entity Hierarchy"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Alternate Classification Hierarchy"
+              }
+            ],
+            "respuesta_correcta": "opt_d",
+            "explicacion": "Topic\nAlternate Classification Hierarchy"
+          },
+          {
+            "id": "101-p1789487070889",
+            "texto": "What is displayed in the Product Tab?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "User Groups"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Workflow definitions"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Product attributes and attribute values"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Integration Endpoints"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nWorkbench vs Web UI"
+          },
+          {
+            "id": "101-p1789487143219",
+            "texto": "Which activities can be performed in BOTH Web UI and Workbench?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Approve data"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Create products"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Create Object Types"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Launch workflows"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Run imports using existing configurations"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_d",
+              "opt_e"
+            ],
+            "explicacion": "Topic\nWorkbench vs Web UI"
+          },
+          {
+            "id": "101-p1789487221161",
+            "texto": "Which activities can ONLY be performed in Workbench?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Create Workflow"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Create Object Types"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Create Business Rules"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Create Import/Export Configurations"
+              },
+              {
+                "id": "opt_e",
+                "texto": "Approve Products"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nWorkbench"
+          },
+          {
+            "id": "101-p1789487274852",
+            "texto": "Which activity cannot be performed in Web UI?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Create Products"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Approve Data"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Maintain Object Types"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Start Workflows"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nWorkbench vs Web UI"
+          },
+          {
+            "id": "101-p1789487335697",
+            "texto": "Which export methods are available in Web UI?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Export with Configuration"
+              },
+              {
+                "id": "opt_b",
+                "texto": "STEPXML Export Wizard"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Export Current View"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Map the Export Yourself"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_c",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nExports"
+          },
+          {
+            "id": "101-p1789487402458",
+            "texto": "What are advantages of Export Configuration Files?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Automatic creation of workflows"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Consistency"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Reusable mappings"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Reduced setup effort"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_b",
+              "opt_c",
+              "opt_d"
+            ],
+            "explicacion": "Topic\nExports"
+          },
+          {
+            "id": "101-p1789487467924",
+            "texto": "What can be configured through Export Manager?",
+            "tipo": "seleccion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Exported objects"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Output format"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Scheduling"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflow Assignees"
+              }
+            ],
+            "respuesta_correcta": [
+              "opt_a",
+              "opt_b",
+              "opt_c"
+            ],
+            "explicacion": "Topic\nExport Manager"
+          },
+          {
+            "id": "101-p1789487575268",
+            "texto": "Why are classifications commonly used to store assets?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "They support approval workflows"
+              },
+              {
+                "id": "opt_b",
+                "texto": "They provide a hierarchical structure for organization"
+              },
+              {
+                "id": "opt_c",
+                "texto": "They only support images"
+              },
+              {
+                "id": "opt_d",
+                "texto": "They enable inheritance"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nAlternate Classification Hierarchy"
+          },
+          {
+            "id": "101-p1789487652629",
+            "texto": "After executing an import, which component should be reviewed first?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Approval Workspace"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Product Tab"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Background Process"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflow Dashboard"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nImports"
+          },
+          {
+            "id": "101-p1789487721078",
+            "texto": "Which homepage widget provides visibility into workflow states and tasks?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Product Overview"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Status Selector Homepage Widget"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Workflow Explorer"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Data Validation Widget"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nWorkflows"
+          },
+          {
+            "id": "101-p1789487960299",
+            "texto": "A retailer wants to import only pink highlighters from an Excel file. Which STEP capability should be configured?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Workflow"
+              },
+              {
+                "id": "opt_b",
+                "texto": "LOV"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Business Rule"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Completeness Score"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nBusiness Rules / Imports"
+          },
+          {
+            "id": "101-p1789488803349",
+            "texto": "A company imports pens but wants to exclude all gel pens. Which functionality should be added to the import process?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Attribute Mapping"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Business Rule"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Approval Rule"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Geo Coding"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nBusiness Rules / Imports"
+          },
+          {
+            "id": "101-p1789488933068",
+            "texto": "Company A supplies products to Company B, which sells them to consumers. Company A uploads product data into Company B's portal. Which solution is being used?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "PDX Syndication"
+              },
+              {
+                "id": "opt_b",
+                "texto": "CMDM"
+              },
+              {
+                "id": "opt_c",
+                "texto": "PDX Onboarding"
+              },
+              {
+                "id": "opt_d",
+                "texto": "OIEP"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nPDX Onboarding"
+          },
+          {
+            "id": "101-p1789489009696",
+            "texto": "A supplier provides dimensions in centimeters, but the retailer requires inches. Which functionality should be used?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Reference Type"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Transformation"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Mapping"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Completeness Score"
+              }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "Topic\nPDX Onboarding"
+          },
+          {
+            "id": "101-p1789489074724",
+            "texto": "A supplier uses \"Product Description\" while the retailer uses \"Marketing Description\". How can this difference be handled?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Attribute Mapping"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Data Container"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Geo Coding"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Validation Base Type"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nPDX Onboarding"
+          },
+          {
+            "id": "101-p1789489143158",
+            "texto": "Which tool helps reduce returns caused by incorrect addresses?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Geo Coding"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Syndication"
+              },
+              {
+                "id": "opt_c",
+                "texto": "STEPXML"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Loqate Address Validation"
+              }
+            ],
+            "respuesta_correcta": "opt_d",
+            "explicacion": "Topic\nCMDM"
+          },
+          {
+            "id": "101-p1789489207976",
+            "texto": "Which capability helps optimize deliveries to multiple locations?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Logate"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Deduplication"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Geo Coding"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Workflow"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nCMDM"
+          },
+          {
+            "id": "101-p1789489292275",
+            "texto": "A company wants to identify duplicate customer records and create Golden Records. Which functionality should be used?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Workflow"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Geo Coding"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Matching and Linking"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Import Manager"
+              }
+            ],
+            "respuesta_correcta": "opt_c",
+            "explicacion": "Topic\nMatching & Linking"
+          },
+          {
+            "id": "101-p1789489657509",
+            "texto": "Which components appear in the PDX ecosystem diagram?",
+            "tipo": "opcion_multiple",
+            "imagen": "assets/img/Picture2.jpg",
+            "opciones": [
+              {
+                "id": "opt_a",
+                "texto": "Supplier → PDX Onboarding → PDX Syndication → Marketplace"
+              },
+              {
+                "id": "opt_b",
+                "texto": "Supplier → PDX Syndication → PDX Onboarding → Marketplace"
+              },
+              {
+                "id": "opt_c",
+                "texto": "Marketplace→ PDX Syndication → PDX Onboarding → Supplier"
+              },
+              {
+                "id": "opt_d",
+                "texto": "Marketplace→ PDX Onboarding → PDX Syndication → Supplier"
+              }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Topic\nPDX"
+          }
+        ]
+      },
+      "240": {
+        id: "240",
+        nombre: "Data Modeling 240",
+        version: "1.0.0",
+        instrucciones: "You will be equipped with the knowledge and skills to build a data model in STEP, focusing on the product domain, built from a given conceptual design of the customer’s requirements.",
+        datos_generales: {
+          tiempo_minutos: 60,
+          total_preguntas: 24,
+          minimo_aprobar: 80,
+          temas: ["Product Taxonomy", "Attributes", "Alternate taxonomies", "Extending the data model", "Supplier ", "Data localization"]
+        },
+        preguntas: [
+          {
+            "id": "240-p1",
+            "texto": "¿Qué condición es indispensable para que una entidad cumpla con la Primera Forma Normal (1FN)?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              { "id": "opt_a", "texto": "Todos los atributos deben contener valores atómicos e indivisibles." },
+              { "id": "opt_b", "texto": "Debe contar obligatoriamente con una clave foránea hacia tres tablas." },
+              { "id": "opt_c", "texto": "Todas las columnas deben ser de tipo numérico entero." },
+              { "id": "opt_d", "texto": "No puede tener una clave primaria definida." }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "1FN exige atomicidad: cada columna debe albergar un único valor indivisible y no existir grupos repetitivos."
+          },
+          {
+            "id": "240-p2",
+            "texto": "Para representar una relación Muchos a Muchos (N:M) entre 'Estudiantes' y 'Cursos', ¿cuál es la estructura recomendada?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              { "id": "opt_a", "texto": "Crear una tabla intermedia asociativa (ej. 'Inscripciones') con llaves foráneas." },
+              { "id": "opt_b", "texto": "Almacenar listas de texto separadas por comas en una sola celda." },
+              { "id": "opt_c", "texto": "Duplicar la tabla de Estudiantes para cada curso existente." },
+              { "id": "opt_d", "texto": "Fusionar ambas entidades en una sola tabla no normalizada." }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Las relaciones N:M se descomponen en dos relaciones 1:N utilizando una tabla intermedia o de unión que garantiza integridad."
+          }
+        ]
+      },
+      "241": {
+        id: "241",
+        nombre: "Data Management 241",
+        version: "1.0.0",
+        instrucciones: "In this course, you will learn how to work with different import and export processes across various types of data sources.",
+        datos_generales: {
+          tiempo_minutos: 60,
+          total_preguntas: 31,
+          minimo_aprobar: 80,
+          temas: ["Capture data", "Maintain data", "Distribute Data"]
+        },
+        preguntas: [
+          {
+            "id": "241-p1",
+            "texto": "¿Cuál es el propósito principal de la capa de Solution Fundamentals en la arquitectura corporativa?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              { "id": "opt_a", "texto": "Establecer los estándares de diseño, seguridad y componentes base compartidos." },
+              { "id": "opt_b", "texto": "Gestionar exclusivamente las consultas SQL sin validaciones." },
+              { "id": "opt_c", "texto": "Reemplazar los motores de base de datos relacionales." },
+              { "id": "opt_d", "texto": "Eliminar la necesidad de autenticación de usuarios." }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Solution Fundamentals 101 sienta las bases transversales de arquitectura, seguridad y gobernanza aplicadas en todas las implementaciones."
+          },
+          {
+            "id": "241-p2",
+            "texto": "Al planificar el despliegue de una solución, ¿qué principio asegura que los cambios no impacten a usuarios productivos?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              { "id": "opt_a", "texto": "Despliegue directo en caliente sobre producción." },
+              { "id": "opt_b", "texto": "Separación estricta de entornos (Desarrollo, Pruebas y Producción)." },
+              { "id": "opt_c", "texto": "Eliminación de la fase de homologación y QA." },
+              { "id": "opt_d", "texto": "Compartir la misma base de datos en todos los niveles." }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "La segregación de ambientes permite aislar riesgos y probar exhaustivamente antes del pase a producción."
+          }
+        ]
+      },
+      "242": {
+        id: "242",
+        nombre: "Workflows and Web UI 242",
+        version: "1.0.0",
+        instrucciones: "In this course, you will get the knowledge and skills to build functional workflows and web user interfaces in STEP to meet the customer’s business requirements",
+        datos_generales: {
+          tiempo_minutos: 60,
+          total_preguntas: 31,
+          minimo_aprobar: 80,
+          temas: ["AWorkflows", "WebUI", "Business Rules"]
+        },
+        preguntas: [
+          {
+            "id": "242-p1",
+            "texto": "¿Cuál es el propósito principal de la capa de Solution Fundamentals en la arquitectura corporativa?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              { "id": "opt_a", "texto": "Establecer los estándares de diseño, seguridad y componentes base compartidos." },
+              { "id": "opt_b", "texto": "Gestionar exclusivamente las consultas SQL sin validaciones." },
+              { "id": "opt_c", "texto": "Reemplazar los motores de base de datos relacionales." },
+              { "id": "opt_d", "texto": "Eliminar la necesidad de autenticación de usuarios." }
+            ],
+            "respuesta_correcta": "opt_a",
+            "explicacion": "Solution Fundamentals 101 sienta las bases transversales de arquitectura, seguridad y gobernanza aplicadas en todas las implementaciones."
+          },
+          {
+            "id": "242-p2",
+            "texto": "Al planificar el despliegue de una solución, ¿qué principio asegura que los cambios no impacten a usuarios productivos?",
+            "tipo": "opcion_multiple",
+            "imagen": null,
+            "opciones": [
+              { "id": "opt_a", "texto": "Despliegue directo en caliente sobre producción." },
+              { "id": "opt_b", "texto": "Separación estricta de entornos (Desarrollo, Pruebas y Producción)." },
+              { "id": "opt_c", "texto": "Eliminación de la fase de homologación y QA." },
+              { "id": "opt_d", "texto": "Compartir la misma base de datos en todos los niveles." }
+            ],
+            "respuesta_correcta": "opt_b",
+            "explicacion": "La segregación de ambientes permite aislar riesgos y probar exhaustivamente antes del pase a producción."
+          }
+        ]
+      }
+    };
+
+    class SimuladorApp {
+      constructor() {
+        this.examenesMeta = [
+          {
+            id: "101",
+            codigo: "101",
+            nombre: "Solution Fundamentals 101",
+            icono: "fa-solid fa-layer-group",
+            badgeColor: "bg-blue-50 text-apple-blue border-blue-200",
+            descripcion: "You will discover how STEP can be used to address business problems through a hands on overview of the basic functionalities of the STEP Multidomain MDM platform."
+          },
+          {
+            id: "240",
+            codigo: "240",
+            nombre: "Data Modeling 240",
+            icono: "fa-solid fa-diagram-project",
+            badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-200",
+            descripcion: "You will be equipped with the knowledge and skills to build a data model in STEP, focusing on the product domain, built from a given conceptual design of the customer’s requirements."
+          },
+          {
+            id: "241",
+            codigo: "241",
+            nombre: "Data Management 241",
+            icono: "fa-solid fa-database",
+            badgeColor: "bg-purple-50 text-purple-600 border-purple-200",
+            descripcion: "In this course, you will learn how to work with different import and export processes across various types of data sources."
+          },
+          {
+            id: "242",
+            codigo: "242",
+            nombre: "Workflows and Web UI 242",
+            icono: "fa-solid fa-sliders",
+            badgeColor: "bg-amber-50 text-amber-600 border-amber-200",
+            descripcion: "In this course, you will get the knowledge and skills to build functional workflows and web user interfaces in STEP to meet the customer’s business requirements"
+          }
+        ];
+
+        // Estado del examen en ejecución
+        this.examenActual = null;
+        this.preguntasSesion = []; // Pool seleccionado para la ejecución actual
+        this.indicePregunta = 0;
+        this.respuestasUsuario = {};
+        this.tiempoRestanteSegundos = 0;
+        this.intervaloTimer = null;
+        this.tiempoTotalSegundos = 0;
+        this.drawerAbierto = false;
+
+        // Estado del CRUD
+        this.crudExamenSeleccionadoId = null;
+
+        // Keys
+        this.STORAGE_KEY_HISTORIAL = 'simulador_historial_examenes_v1';
+        this.STORAGE_KEY_BANCO = 'simulador_banco_preguntas_v1';
+
+        // Banco en memoria
+        this.bancoActivo = {};
+      }
+
+      init() {
+        this.inicializarBancoPreguntas();
+        this.renderMenuExamenes();
+        this.cargarYRenderizarHistorial();
+        this.registrarAtajosTeclado();
+
+        // Render CRUD side
+        this.renderCrudSidebar();
+      }
+
+      inicializarBancoPreguntas() {
+        const bancoGuardado = localStorage.getItem(this.STORAGE_KEY_BANCO);
+        if (bancoGuardado) {
+          try {
+            this.bancoActivo = JSON.parse(bancoGuardado);
+          } catch (e) {
+            console.error("Error parseando banco desde localStorage, usando default", e);
+            this.bancoActivo = JSON.parse(JSON.stringify(BANCO_EXAMENES_DEFAULT));
+          }
+        } else {
+          this.bancoActivo = JSON.parse(JSON.stringify(BANCO_EXAMENES_DEFAULT));
+          this.guardarBancoLocal();
+        }
+      }
+
+      guardarBancoLocal() {
+        localStorage.setItem(this.STORAGE_KEY_BANCO, JSON.stringify(this.bancoActivo));
+      }
+
+      cambiarVistaPrincipal(vista) {
+        if (vista === 'examenes') {
+          $('#nav-examenes').addClass('bg-white shadow-xs text-apple-dark').removeClass('text-apple-subtext hover:text-apple-dark');
+          $('#nav-examenes i').removeClass('text-slate-400').addClass('text-apple-blue');
+
+          $('#nav-preguntas').removeClass('bg-white shadow-xs text-apple-dark').addClass('text-apple-subtext hover:text-apple-dark');
+          $('#nav-preguntas i').addClass('text-slate-400').removeClass('text-amber-500');
+
+          $('#contenedor-principal-crud').addClass('hidden');
+          $('#contenedor-principal-examenes').removeClass('hidden');
+
+          // Refrescar tarjetas por si se añadieron preguntas en el CRUD
+          this.renderMenuExamenes();
+        } else {
+          $('#nav-preguntas').addClass('bg-white shadow-xs text-apple-dark').removeClass('text-apple-subtext hover:text-apple-dark');
+          $('#nav-preguntas i').removeClass('text-slate-400').addClass('text-amber-500');
+
+          $('#nav-examenes').removeClass('bg-white shadow-xs text-apple-dark').addClass('text-apple-subtext hover:text-apple-dark');
+          $('#nav-examenes i').addClass('text-slate-400').removeClass('text-apple-blue');
+
+          $('#contenedor-principal-examenes').addClass('hidden');
+          $('#contenedor-principal-crud').removeClass('hidden');
+
+          // Si estaba en medio de un examen, cancelarlo limpiamente
+          if ($('#panel-examen-activo').is(':visible')) {
+            this.irAlMenu();
+          }
+        }
+      }
+
+      renderMenuExamenes() {
+        const $contenedor = $('#grid-examenes').empty();
+
+        this.examenesMeta.forEach(meta => {
+          const examenDatos = this.bancoActivo[meta.id];
+          if (!examenDatos) return;
+
+          const datos = examenDatos.datos_generales;
+          const totalP = datos.total_preguntas || 0;
+          const minP = datos.minimo_aprobar || 0;
+          const minPreguntas = Math.ceil((minP / 100) * totalP);
+
+          const temasHtml = (datos.temas || []).map(t => `<span class="px-2 py-0.5 bg-slate-100 rounded-md text-[10px] text-slate-600 font-medium">${t}</span>`).join('');
+
+          const cardHtml = `
+            <div class="bg-apple-card border border-apple-border rounded-3xl p-6 hover:shadow-md transition-all flex flex-col justify-between group space-y-5">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold border ${meta.badgeColor}">
+                    ${meta.codigo}
+                  </span>
+                  <span class="text-xs font-medium text-apple-subtext flex items-center gap-1.5">
+                    <i class="fa-regular fa-clock text-apple-subtext"></i> ${datos.tiempo_minutos} min
+                  </span>
+                </div>
+
+                <div class="flex items-start gap-3.5 pt-1">
+                  <div class="w-11 h-11 rounded-2xl bg-slate-100 flex items-center justify-center text-apple-dark text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <i class="${meta.icono}"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-base font-bold text-apple-dark group-hover:text-apple-blue transition-colors">
+                      ${meta.nombre}
+                    </h3>
+                    <p class="text-xs text-apple-subtext line-clamp-2 mt-0.5 leading-relaxed">
+                      ${meta.descripcion}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2 text-[11px] text-apple-subtext bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
+                  <div>
+                    <span class="block text-slate-400 font-medium">Reactivos:</span>
+                    <strong class="text-apple-dark text-xs font-semibold">${totalP} preguntas</strong>
+                  </div>
+                  <div>
+                    <span class="block text-slate-400 font-medium">Aprobación:</span>
+                    <strong class="text-apple-dark text-xs font-semibold">Min. ${minP}% - ${minPreguntas} Preguntas</strong>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5 pt-1">
+                  ${temasHtml}
+                </div>
+              </div>
+
+              <div class="pt-2">
+                <button onclick="app.seleccionarExamen('${meta.id}')" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-apple-blue hover:text-white text-apple-dark text-xs font-semibold transition-all flex items-center justify-center gap-2 focus-apple">
+                  <span>Presentar Examen</span>
+                  <i class="fa-solid fa-arrow-right text-[11px] transition-transform group-hover:translate-x-1"></i>
+                </button>
+              </div>
+            </div>
+          `;
+          $contenedor.append(cardHtml);
+        });
+      }
+
+      seleccionarExamen(examenId) {
+        const examenData = this.bancoActivo[examenId];
+        if (!examenData || !examenData.preguntas || !Array.isArray(examenData.preguntas)) {
+          this.mostrarToast("El archivo de examen no contiene una estructura válida de preguntas.", 'triangle-exclamation');
+          return;
+        }
+
+        this.prepararInstrucciones(examenData);
+      }
+
+      prepararInstrucciones(examenData) {
+        this.examenActual = examenData;
+
+        $('#ins-codigo').text(`Examen Oficial ${examenData.id}`);
+        $('#ins-titulo').text(examenData.nombre);
+        $('#ins-tiempo').text(`${examenData.datos_generales.tiempo_minutos} min`);
+        $('#ins-preguntas').text(examenData.datos_generales.total_preguntas);
+        $('#ins-minimo').text(`${examenData.datos_generales.minimo_aprobar}%`);
+
+        $('#vista-menu').addClass('hidden');
+        $('#vista-resultados').addClass('hidden');
+        $('#vista-examen').removeClass('hidden');
+
+        $('#pantalla-instrucciones').removeClass('hidden');
+        $('#panel-examen-activo').addClass('hidden');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        anime({
+          targets: '#pantalla-instrucciones',
+          opacity: [0, 1],
+          translateY: [20, 0],
+          duration: 350,
+          easing: 'easeOutQuad'
+        });
+      }
+
+      iniciarExamenConfirmado() {
+        this.indicePregunta = 0;
+        this.respuestasUsuario = {};
+        this.tiempoTotalSegundos = this.examenActual.datos_generales.tiempo_minutos * 60;
+        this.tiempoRestanteSegundos = this.tiempoTotalSegundos;
+
+        // Lógica de Pool: Barajar y seleccionar la cantidad 'total_preguntas' definida en el JSON
+        const pool = this.examenActual.preguntas || [];
+        let shuffled = [...pool];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
+        // Asegurar no pedir más preguntas de las que existen en el banco real
+        const requeridas = this.examenActual.datos_generales.total_preguntas || pool.length;
+        const cantidadAUsar = Math.min(requeridas, pool.length);
+        this.preguntasSesion = shuffled.slice(0, cantidadAUsar);
+
+        $('#pantalla-instrucciones').addClass('hidden');
+        $('#panel-examen-activo').removeClass('hidden');
+
+        this.renderDrawerGrid();
+        this.mostrarPregunta(0);
+        this.iniciarTemporizador();
+
+        anime({
+          targets: '#panel-examen-activo',
+          opacity: [0, 1],
+          duration: 300,
+          easing: 'easeOutQuad'
+        });
+      }
+
+      iniciarTemporizador() {
+        if (this.intervaloTimer) clearInterval(this.intervaloTimer);
+        this.actualizarDisplayTimer();
+
+        this.intervaloTimer = setInterval(() => {
+          this.tiempoRestanteSegundos--;
+          this.actualizarDisplayTimer();
+
+          if (this.tiempoRestanteSegundos <= 0) {
+            clearInterval(this.intervaloTimer);
+            this.finalizarExamen(true);
+          }
+        }, 1000);
+      }
+
+      actualizarDisplayTimer() {
+        const mins = Math.floor(this.tiempoRestanteSegundos / 60);
+        const segs = this.tiempoRestanteSegundos % 60;
+        const texto = `${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
+
+        const $el = $('#temporizador-display').text(texto);
+
+        if (this.tiempoRestanteSegundos < 120) {
+          $el.parent().addClass('bg-red-50 border-red-200 text-red-600').removeClass('bg-slate-100 border-slate-200 text-apple-dark');
+        } else {
+          $el.parent().removeClass('bg-red-50 border-red-200 text-red-600').addClass('bg-slate-100 border-slate-200 text-apple-dark');
+        }
+      }
+
+      mostrarPregunta(indice) {
+        if (!this.preguntasSesion || indice < 0 || indice >= this.preguntasSesion.length) return;
+
+        this.indicePregunta = indice;
+        const total = this.preguntasSesion.length;
+        const p = this.preguntasSesion[indice];
+
+        const progresoPorcentaje = ((indice + 1) / total) * 100;
+        $('#barra-progreso').css('width', `${progresoPorcentaje}%`);
+        $('#badge-pregunta-actual').text(`Pregunta ${indice + 1} de ${total}`);
+
+        $('#texto-pregunta').text(p.texto);
+        if (p.tipo === 'seleccion_multiple') {
+          $('#indicacion-pregunta').text('Choose all the options you consider correct.');
+        } else {
+          $('#indicacion-pregunta').text('Select an option.');
+        }
+
+        const $imgContainer = $('#contenedor-imagen-pregunta');
+        const $img = $('#imagen-pregunta');
+        const $imgError = $('#error-imagen-pregunta');
+
+        if (p.imagen && p.imagen.trim() !== "") {
+          $img.attr('src', p.imagen).attr('alt', `Ilustración para la pregunta ${indice + 1}`);
+          $img.removeClass('hidden');
+          $imgError.addClass('hidden');
+          $imgContainer.removeClass('hidden');
+        } else {
+          $imgContainer.addClass('hidden');
+          $img.removeAttr('src');
+          $img.removeClass('hidden');
+          $imgError.addClass('hidden');
+        }
+
+        const $opciones = $('#contenedor-opciones').empty();
+        const seleccionPrevia = this.respuestasUsuario[p.id];
+        const isMultiple = (p.tipo === 'seleccion_multiple');
+
+        p.opciones.forEach((opt, idx) => {
+          let estaSeleccionada = false;
+          if (isMultiple) {
+            estaSeleccionada = Array.isArray(seleccionPrevia) && seleccionPrevia.includes(opt.id);
+          } else {
+            estaSeleccionada = (seleccionPrevia === opt.id);
+          }
+          const letra = String.fromCharCode(65 + idx);
+          const typeInput = isMultiple ? "checkbox" : "radio";
+
+          const optHtml = `
+            <label class="group flex items-start gap-3.5 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none focus-apple ${estaSeleccionada
+              ? 'bg-blue-50/70 border-apple-blue shadow-xs'
+              : 'bg-white border-apple-border hover:border-slate-300 hover:bg-slate-50/60'
+            }">
+              <input type="${typeInput}" name="opcion_pregunta" value="${opt.id}" ${estaSeleccionada ? 'checked' : ''} 
+                onchange="app.seleccionarOpcion('${p.id}', '${opt.id}')"
+                class="sr-only" />
+              
+              <div class="w-6 h-6 ${isMultiple ? 'rounded-md' : 'rounded-full'} border flex items-center justify-center text-xs font-bold transition-all flex-shrink-0 mt-0.5 ${estaSeleccionada
+              ? 'bg-apple-blue text-white border-apple-blue'
+              : 'bg-white border-slate-300 text-apple-subtext group-hover:border-slate-400'
+            }">
+                ${isMultiple && estaSeleccionada ? '<i class="fa-solid fa-check text-[10px]"></i>' : letra}
+              </div>
+
+              <div class="flex-1 text-xs sm:text-sm font-medium leading-relaxed ${estaSeleccionada ? 'text-apple-dark font-semibold' : 'text-slate-700'}">
+                ${opt.texto}
+              </div>
+            </label>
+          `;
+          $opciones.append(optHtml);
+        });
+
+        if (indice === 0) {
+          $('#btn-previa').addClass('opacity-40 cursor-not-allowed pointer-events-none');
+        } else {
+          $('#btn-previa').removeClass('opacity-40 cursor-not-allowed pointer-events-none');
+        }
+
+        if (indice === total - 1) {
+          $('#btn-siguiente').addClass('hidden');
+          $('#btn-finalizar').removeClass('hidden');
+        } else {
+          $('#btn-siguiente').removeClass('hidden');
+          $('#btn-finalizar').addClass('hidden');
+        }
+
+        this.actualizarBotonesGrid();
+
+        anime({
+          targets: '#tarjeta-pregunta',
+          opacity: [0.85, 1],
+          translateY: [4, 0],
+          duration: 180,
+          easing: 'easeOutQuad'
+        });
+      }
+
+      manejarFalloImagen() {
+        $('#imagen-pregunta').addClass('hidden');
+        $('#error-imagen-pregunta').removeClass('hidden');
+      }
+
+      seleccionarOpcion(preguntaId, opcionId) {
+        const p = this.preguntasSesion.find(x => x.id === preguntaId);
+        if (p && p.tipo === 'seleccion_multiple') {
+          if (!Array.isArray(this.respuestasUsuario[preguntaId])) {
+            this.respuestasUsuario[preguntaId] = [];
+          }
+          const arr = this.respuestasUsuario[preguntaId];
+          if (arr.includes(opcionId)) {
+            this.respuestasUsuario[preguntaId] = arr.filter(id => id !== opcionId);
+            if (this.respuestasUsuario[preguntaId].length === 0) {
+              delete this.respuestasUsuario[preguntaId];
+            }
+          } else {
+            arr.push(opcionId);
+          }
+        } else {
+          this.respuestasUsuario[preguntaId] = opcionId;
+        }
+        this.mostrarPregunta(this.indicePregunta);
+      }
+
+      anteriorPregunta() {
+        if (this.indicePregunta > 0) {
+          this.mostrarPregunta(this.indicePregunta - 1);
+        }
+      }
+
+      siguientePregunta() {
+        if (this.preguntasSesion && this.indicePregunta < this.preguntasSesion.length - 1) {
+          this.mostrarPregunta(this.indicePregunta + 1);
+        }
+      }
+
+      toggleDrawerGrid() {
+        this.drawerAbierto = !this.drawerAbierto;
+        if (this.drawerAbierto) {
+          $('#drawer-grid').removeClass('hidden');
+        } else {
+          $('#drawer-grid').addClass('hidden');
+        }
+      }
+
+      renderDrawerGrid() {
+        const $contenedor = $('#grid-botones-preguntas').empty();
+        const total = this.preguntasSesion.length;
+
+        for (let i = 0; i < total; i++) {
+          const btnHtml = `
+            <button onclick="app.mostrarPregunta(${i})" id="btn-grid-${i}" class="w-9 h-9 rounded-xl text-xs font-semibold flex items-center justify-center transition-all focus-apple">
+              ${i + 1}
+            </button>
+          `;
+          $contenedor.append(btnHtml);
+        }
+        this.actualizarBotonesGrid();
+      }
+
+      actualizarBotonesGrid() {
+        if (!this.preguntasSesion) return;
+        this.preguntasSesion.forEach((p, idx) => {
+          const $btn = $(`#btn-grid-${idx}`);
+          const respondida = !!this.respuestasUsuario[p.id];
+          const esActual = idx === this.indicePregunta;
+
+          $btn.removeClass('bg-apple-blue text-white ring-2 ring-blue-300 bg-blue-100 text-apple-blue bg-slate-100 text-slate-700');
+
+          if (esActual) {
+            $btn.addClass('ring-2 ring-apple-blue font-bold');
+          }
+
+          if (respondida) {
+            $btn.addClass('bg-apple-blue text-white');
+          } else {
+            $btn.addClass('bg-slate-100 text-slate-600 hover:bg-slate-200');
+          }
+        });
+      }
+
+      solicitarConfirmacionFinalizar() {
+        const total = this.preguntasSesion.length;
+        const respondidas = Object.keys(this.respuestasUsuario).length;
+        const pendientes = total - respondidas;
+
+        let mensaje = "¿Deseas finalizar la prueba y obtener tu calificación?";
+        if (pendientes > 0) {
+          mensaje = `Tienes ${pendientes} pregunta(s) sin responder de un total de ${total}. Si continúas, se contabilizarán como incorrectas.\n\n¿Estás seguro de enviar la evaluación?`;
+        }
+
+        this.abrirModal({
+          titulo: "Finalizar Examen",
+          subtitulo: "Confirmación de entrega",
+          mensaje: mensaje,
+          btnAceptarTexto: "Sí, calificar ahora",
+          icono: pendientes > 0 ? "fa-solid fa-circle-question" : "fa-solid fa-check-double",
+          onAceptar: () => {
+            this.finalizarExamen(false);
+          }
+        });
+      }
+
+      finalizarExamen(porTiempoAgotado = false) {
+        if (this.intervaloTimer) clearInterval(this.intervaloTimer);
+
+        const totalPreguntas = this.preguntasSesion.length;
+        let aciertos = 0;
+        const respuestasDetalle = [];
+
+        this.preguntasSesion.forEach(p => {
+          const seleccionUsuario = this.respuestasUsuario[p.id] || null;
+          let esCorrecta = false;
+          let textoRespUsuario = "Sin responder";
+          let textoRespCorrecta = "Desconocida";
+
+          if (p.tipo === 'seleccion_multiple') {
+            const correctArr = Array.isArray(p.respuesta_correcta) ? p.respuesta_correcta : [p.respuesta_correcta];
+            const selArr = Array.isArray(seleccionUsuario) ? seleccionUsuario : [];
+
+            if (selArr.length > 0) {
+              if (selArr.length === correctArr.length && selArr.every(id => correctArr.includes(id))) {
+                esCorrecta = true;
+              }
+              const optsUs = p.opciones.filter(o => selArr.includes(o.id));
+              textoRespUsuario = optsUs.map(o => `<span class="px-2 py-0.5 bg-slate-100 rounded text-xs border border-slate-200 inline-block mr-1 mt-1">${o.texto}</span>`).join('');
+            }
+
+            const optsCo = p.opciones.filter(o => correctArr.includes(o.id));
+            textoRespCorrecta = optsCo.map(o => `<span class="px-2 py-0.5 bg-emerald-100/50 rounded text-xs border border-emerald-200 inline-block mr-1 mt-1 text-emerald-800">${o.texto}</span>`).join('');
+          } else {
+            esCorrecta = seleccionUsuario === p.respuesta_correcta;
+            if (seleccionUsuario) {
+              const optUs = p.opciones.find(o => o.id === seleccionUsuario);
+              if (optUs) textoRespUsuario = optUs.texto;
+            }
+            const optCo = p.opciones.find(o => o.id === p.respuesta_correcta);
+            if (optCo) textoRespCorrecta = optCo.texto;
+          }
+
+          if (esCorrecta) aciertos++;
+
+          respuestasDetalle.push({
+            pregunta_id: p.id,
+            texto_pregunta: p.texto,
+            respuesta_usuario_id: seleccionUsuario,
+            respuesta_usuario_texto: textoRespUsuario,
+            respuesta_correcta_id: p.respuesta_correcta,
+            respuesta_correcta_texto: textoRespCorrecta,
+            correcta: esCorrecta,
+            explicacion: p.explicacion || "Sin explicación adicional disponible."
+          });
+        });
+
+        const porcentaje = Math.round((aciertos / totalPreguntas) * 100);
+        const minimoAprobar = this.examenActual.datos_generales.minimo_aprobar;
+        const aprobado = porcentaje >= minimoAprobar;
+        const duracionSegundos = this.tiempoTotalSegundos - this.tiempoRestanteSegundos;
+
+        const intento = {
+          id_intento: 'intento_' + Date.now(),
+          examen_id: this.examenActual.id,
+          examen_nombre: this.examenActual.nombre,
+          fecha_iso: new Date().toISOString(),
+          puntaje: aciertos,
+          total: totalPreguntas,
+          porcentaje: porcentaje,
+          aprobado: aprobado,
+          duracion_segundos: duracionSegundos,
+          respuestas: respuestasDetalle
+        };
+
+        this.guardarIntentoLocalStorage(intento);
+        this.renderResultados(intento);
+
+        if (porTiempoAgotado) {
+          this.mostrarToast("Tiempo agotado: el examen se envió de forma automática.", 'clock');
+        }
+      }
+
+      guardarIntentoLocalStorage(intento) {
+        try {
+          const historialPrevio = this.obtenerHistorialLocalStorage();
+          historialPrevio.unshift(intento);
+          localStorage.setItem(this.STORAGE_KEY_HISTORIAL, JSON.stringify(historialPrevio));
+        } catch (e) {
+          console.error("Error guardando historial en localStorage:", e);
+        }
+      }
+
+      obtenerHistorialLocalStorage() {
+        try {
+          const data = localStorage.getItem(this.STORAGE_KEY_HISTORIAL);
+          return data ? JSON.parse(data) : [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      renderResultados(intento) {
+        $('#vista-examen').addClass('hidden');
+        $('#vista-menu').addClass('hidden');
+        $('#vista-resultados').removeClass('hidden');
+
+        $('#res-codigo-examen').text(`Resultado Oficial • ${intento.examen_nombre}`);
+        $('#res-stat-score').text(`${intento.porcentaje}%`);
+        $('#res-stat-correctas').text(`${intento.puntaje} / ${intento.total}`);
+
+        // Determinar minimo de aprobar desde banco en caso de que sea del historial
+        let minVal = 70;
+        if (this.examenActual) minVal = this.examenActual.datos_generales.minimo_aprobar;
+        else if (this.bancoActivo[intento.examen_id]) minVal = this.bancoActivo[intento.examen_id].datos_generales.minimo_aprobar;
+
+        $('#res-stat-minimo').text(`${minVal}%`);
+
+        const m = Math.floor(intento.duracion_segundos / 60);
+        const s = intento.duracion_segundos % 60;
+        $('#res-stat-tiempo').text(`${m}m ${s}s`);
+
+        const $iconBox = $('#badge-estado-icono').empty();
+        if (intento.aprobado) {
+          $iconBox.removeClass('bg-red-50 text-apple-red').addClass('bg-emerald-50 text-apple-green');
+          $iconBox.html('<i class="fa-solid fa-trophy"></i>');
+          $('#res-estado-texto').text('¡Examen Aprobado!').removeClass('text-apple-red').addClass('text-apple-dark');
+          $('#res-mensaje-sub').text('Has alcanzado las competencias mínimas requeridas para esta certificación.');
+        } else {
+          $iconBox.removeClass('bg-emerald-50 text-apple-green').addClass('bg-red-50 text-apple-red');
+          $iconBox.html('<i class="fa-solid fa-circle-xmark"></i>');
+          $('#res-estado-texto').text('No Aprobado').addClass('text-apple-red').removeClass('text-apple-dark');
+          $('#res-mensaje-sub').text('No has alcanzado el puntaje mínimo de aprobación. Revisa el desglose y reintenta la prueba.');
+        }
+
+        const $contenedorRevision = $('#contenedor-revision-preguntas').empty();
+        const $gridResultados = $('#grid-botones-resultados').empty();
+
+        intento.respuestas.forEach((item, idx) => {
+          const cardId = `revision-reactivo-${idx}`;
+
+          const btnHtml = `
+            <button onclick="document.getElementById('${cardId}').scrollIntoView({ behavior: 'smooth', block: 'center' })" class="w-9 h-9 rounded-xl text-xs font-semibold flex items-center justify-center transition-all focus-apple text-white ${item.correcta ? 'bg-apple-green shadow-sm' : 'bg-apple-red shadow-sm'}" title="Ir a pregunta ${idx + 1}">
+              ${idx + 1}
+            </button>
+          `;
+          $gridResultados.append(btnHtml);
+
+          const cardRevisionHtml = `
+            <div id="${cardId}" class="bg-apple-card border ${item.correcta ? 'border-apple-border' : 'border-red-200/80'} rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 scroll-mt-36">
+              <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-apple-subtext">Reactivo ${idx + 1}</span>
+                  <h4 class="text-sm sm:text-base font-semibold text-apple-dark">${item.texto_pregunta}</h4>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 ${item.correcta
+              ? 'bg-emerald-50 text-apple-green'
+              : 'bg-red-50 text-apple-red'
+            }">
+                  <i class="fa-solid ${item.correcta ? 'fa-check' : 'fa-xmark'}"></i>
+                  ${item.correcta ? 'Correcta' : 'Incorrecta'}
+                </span>
+              </div>
+
+              <div class="space-y-2 text-xs pt-1">
+                <div class="p-3 rounded-xl ${item.correcta ? 'bg-emerald-50/60 text-emerald-950 border border-emerald-200/50' : 'bg-red-50/60 text-red-950 border border-red-200/50'}">
+                  <span class="font-bold block mb-0.5">Tu respuesta:</span>
+                  <span>${item.respuesta_usuario_texto}</span>
+                </div>
+
+                ${!item.correcta ? `
+                  <div class="p-3 rounded-xl bg-slate-50 text-slate-800 border border-slate-200">
+                    <span class="font-bold block mb-0.5 text-apple-green flex items-center gap-1.5">
+                      <i class="fa-solid fa-check"></i> Respuesta correcta:
+                    </span>
+                    <span>${item.respuesta_correcta_texto}</span>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/60 text-xs text-slate-600 space-y-1">
+                <span class="font-semibold text-apple-dark flex items-center gap-1.5">
+                  <i class="fa-regular fa-lightbulb text-amber-500"></i> Explicación técnica:
+                </span>
+                <p class="leading-relaxed">${item.explicacion}</p>
+              </div>
+            </div>
+          `;
+          $contenedorRevision.append(cardRevisionHtml);
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        anime({
+          targets: '#vista-resultados',
+          opacity: [0, 1],
+          translateY: [15, 0],
+          duration: 350,
+          easing: 'easeOutQuad'
+        });
+      }
+
+      reintentarExamenActual() {
+        if (this.examenActual) {
+          this.prepararInstrucciones(this.examenActual);
+        } else {
+          this.irAlMenu();
+        }
+      }
+
+      cargarYRenderizarHistorial() {
+        const historial = this.obtenerHistorialLocalStorage();
+        const $tbody = $('#tbody-historial').empty();
+        const $empty = $('#historial-vacio');
+        const $acciones = $('#contenedor-acciones-historial');
+
+        if (historial.length === 0) {
+          $empty.removeClass('hidden');
+          $('#tabla-historial').addClass('hidden');
+          $acciones.addClass('hidden');
+          return;
+        }
+
+        $empty.addClass('hidden');
+        $('#tabla-historial').removeClass('hidden');
+        $acciones.removeClass('hidden');
+
+        historial.forEach(item => {
+          const fecha = new Date(item.fecha_iso).toLocaleDateString('es-ES', {
+            day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+
+          const m = Math.floor(item.duracion_segundos / 60);
+          const s = item.duracion_segundos % 60;
+
+          const rowHtml = `
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-apple-dark text-xs sm:text-sm">
+                ${item.examen_nombre}
+              </td>
+              <td class="py-3.5 px-4 text-apple-subtext text-xs whitespace-nowrap">
+                ${fecha}
+              </td>
+              <td class="py-3.5 px-4 text-xs font-semibold text-apple-dark">
+                ${item.puntaje} / ${item.total} <span class="text-apple-subtext font-normal">(${item.porcentaje}%)</span>
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.aprobado ? 'bg-emerald-50 text-apple-green' : 'bg-red-50 text-apple-red'
+            }">
+                  <span class="w-1.5 h-1.5 rounded-full ${item.aprobado ? 'bg-apple-green' : 'bg-apple-red'}"></span>
+                  ${item.aprobado ? 'Aprobado' : 'No aprobado'}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-apple-subtext text-xs font-mono">
+                ${m}m ${s}s
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                <button onclick="app.verDetalleIntento('${item.id_intento}')" class="w-8 h-8 rounded-lg hover:bg-slate-200 text-apple-subtext hover:text-apple-dark transition-all inline-flex items-center justify-center focus-apple" title="Revisar examen">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+          $tbody.append(rowHtml);
+        });
+      }
+
+      verDetalleIntento(idIntento) {
+        const historial = this.obtenerHistorialLocalStorage();
+        const intento = historial.find(i => i.id_intento === idIntento);
+        if (!intento) {
+          this.mostrarToast("El intento seleccionado ya no existe en el historial local.", 'circle-xmark');
+          return;
+        }
+
+        this.renderResultados(intento);
+      }
+
+      exportarHistorialJSON() {
+        const historial = this.obtenerHistorialLocalStorage();
+        if (historial.length === 0) {
+          this.mostrarToast("No hay datos de historial para exportar.", 'circle-info');
+          return;
+        }
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historial, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `historial_examenes_${Date.now()}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+
+        this.mostrarToast("Historial exportado como archivo JSON descargable.", 'download');
+      }
+
+      confirmarBorradoHistorial() {
+        this.abrirModal({
+          titulo: "¿Limpiar Historial?",
+          subtitulo: "Acción permanente",
+          mensaje: "Se borrarán todos los registros de intentos guardados en este navegador. Esta acción no se puede deshacer.",
+          btnAceptarTexto: "Sí, borrar todo",
+          icono: "fa-regular fa-trash-can",
+          onAceptar: () => {
+            localStorage.removeItem(this.STORAGE_KEY_HISTORIAL);
+            this.cargarYRenderizarHistorial();
+            this.mostrarToast("Historial borrado exitosamente.", 'check');
+          }
+        });
+      }
+
+      irAlMenu() {
+        if (this.intervaloTimer) clearInterval(this.intervaloTimer);
+        $('#vista-examen').addClass('hidden');
+        $('#vista-resultados').addClass('hidden');
+        $('#vista-menu').removeClass('hidden');
+        this.cargarYRenderizarHistorial();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // =========================================================================
+      // LÓGICA CRUD DE PREGUNTAS
+      // =========================================================================
+      renderCrudSidebar() {
+        const $lista = $('#crud-lista-examenes').empty();
+
+        this.examenesMeta.forEach(meta => {
+          const obj = this.bancoActivo[meta.id];
+          if (!obj) return;
+
+          const btnHtml = `
+                  <button onclick="app.seleccionarExamenCrud('${meta.id}')" id="crud-btn-examen-${meta.id}" class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium transition-all hover:bg-slate-100 text-slate-700 flex items-center justify-between group">
+                      <span class="flex items-center gap-2 truncate">
+                          <span class="w-2 h-2 rounded-full ${meta.badgeColor.split(' ')[0]}"></span>
+                          <span class="truncate">${meta.id} - ${meta.nombre.split(' ')[0]}</span>
+                      </span>
+                      <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md group-hover:bg-white transition-colors">${obj.preguntas ? obj.preguntas.length : 0} Qs</span>
+                  </button>
+              `;
+          $lista.append(btnHtml);
+        });
+      }
+
+      seleccionarExamenCrud(id) {
+        this.crudExamenSeleccionadoId = id;
+
+        // Estilo de botones sidebar
+        $('[id^="crud-btn-examen-"]').removeClass('bg-apple-blue/10 text-apple-blue font-bold').addClass('hover:bg-slate-100 text-slate-700');
+        $(`#crud-btn-examen-${id}`).addClass('bg-apple-blue/10 text-apple-blue font-bold').removeClass('hover:bg-slate-100 text-slate-700');
+
+        const obj = this.bancoActivo[id];
+        $('#crud-titulo-examen').text(obj.nombre);
+        $('#crud-contador-preguntas').text(`${obj.preguntas ? obj.preguntas.length : 0} preguntas en el banco`);
+
+        $('#btn-nueva-pregunta').removeClass('hidden');
+
+        this.renderListaPreguntasCrud();
+      }
+
+      renderListaPreguntasCrud() {
+        const $lista = $('#crud-lista-preguntas').empty();
+        const obj = this.bancoActivo[this.crudExamenSeleccionadoId];
+
+        if (!obj || !obj.preguntas || obj.preguntas.length === 0) {
+          $lista.html(`
+                  <div class="p-8 text-center text-apple-subtext text-sm">
+                      <i class="fa-regular fa-folder-open text-2xl mb-2 text-slate-300"></i>
+                      <p>Este examen aún no tiene preguntas en el banco.</p>
+                  </div>
+              `);
+          return;
+        }
+
+        obj.preguntas.forEach((p, idx) => {
+          const html = `
+                  <div class="p-4 hover:bg-slate-50 transition-colors flex items-start gap-4">
+                      <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0 mt-0.5">
+                          ${idx + 1}
+                      </div>
+                      <div class="flex-1 space-y-1 overflow-hidden">
+                          <p class="text-sm font-semibold text-apple-dark line-clamp-2">${p.texto}</p>
+                          <div class="flex items-center gap-3 text-[11px] text-apple-subtext">
+                              <span><i class="fa-solid fa-list-ul mr-1"></i> ${p.opciones.length} opciones</span>
+                              ${p.imagen ? `<span class="text-apple-blue"><i class="fa-regular fa-image mr-1"></i> Tiene imagen</span>` : ''}
+                          </div>
+                      </div>
+                      <div class="flex items-center gap-1 flex-shrink-0">
+                          <button onclick="app.abrirModalEdicionPregunta('${p.id}')" class="w-8 h-8 rounded-lg text-slate-400 hover:text-apple-blue hover:bg-blue-50 transition-colors flex items-center justify-center focus-apple" title="Editar">
+                              <i class="fa-solid fa-pen-to-square"></i>
+                          </button>
+                          <button onclick="app.confirmarBorrarPregunta('${p.id}')" class="w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center focus-apple" title="Eliminar">
+                              <i class="fa-solid fa-trash-can"></i>
+                          </button>
+                      </div>
+                  </div>
+              `;
+          $lista.append(html);
+        });
+      }
+
+      abrirModalEdicionPregunta(preguntaId) {
+        const $modal = $('#modal-edicion-pregunta');
+        const $contenedor = $('#edit-contenedor-opciones').empty();
+
+        let p = null;
+        if (preguntaId) {
+          const obj = this.bancoActivo[this.crudExamenSeleccionadoId];
+          p = obj.preguntas.find(x => x.id === preguntaId);
+        }
+
+        if (p) {
+          $('#modal-edicion-titulo').text("Editar Pregunta");
+          $('#edit-pregunta-id').val(p.id);
+          $('#edit-pregunta-texto').val(p.texto);
+          $('#edit-pregunta-imagen').val(p.imagen || "");
+          $('#edit-pregunta-explicacion').val(p.explicacion || "");
+          $('#edit-pregunta-tipo').val(p.tipo || "opcion_multiple");
+
+          const isMultiple = (p.tipo === "seleccion_multiple");
+
+          p.opciones.forEach((opt, i) => {
+            let esCorrecta = false;
+            if (isMultiple) {
+              esCorrecta = Array.isArray(p.respuesta_correcta) ? p.respuesta_correcta.includes(opt.id) : (p.respuesta_correcta === opt.id);
+            } else {
+              esCorrecta = (p.respuesta_correcta === opt.id);
+            }
+            this.agregarFilaOpcionCrud(opt.id, opt.texto, esCorrecta, isMultiple);
+          });
+        } else {
+          $('#modal-edicion-titulo').text("Nueva Pregunta");
+          $('#edit-pregunta-id').val("");
+          $('#edit-pregunta-texto').val("");
+          $('#edit-pregunta-imagen').val("");
+          $('#edit-pregunta-explicacion').val("");
+          $('#edit-pregunta-tipo').val("opcion_multiple");
+
+          // 4 opciones por defecto
+          this.agregarFilaOpcionCrud('opt_a', '', true, false);
+          this.agregarFilaOpcionCrud('opt_b', '', false, false);
+          this.agregarFilaOpcionCrud('opt_c', '', false, false);
+          this.agregarFilaOpcionCrud('opt_d', '', false, false);
+        }
+
+        $modal.removeClass('hidden');
+      }
+
+      cambiarTipoPreguntaCrud() {
+        const isMultiple = $('#edit-pregunta-tipo').val() === 'seleccion_multiple';
+
+        $('.crud-opt-radio').each(function () {
+          const isChecked = $(this).is(':checked');
+          const nameAttr = isMultiple ? '' : 'name="crud_correct_opt"';
+          const typeAttr = isMultiple ? 'type="checkbox"' : 'type="radio"';
+          const focusRing = isMultiple ? 'focus:ring-emerald-500 text-emerald-500 rounded' : 'focus:ring-apple-blue text-apple-blue';
+          const valAttr = `value="${$(this).val()}"`;
+
+          const newHtml = `<input ${typeAttr} ${nameAttr} ${valAttr} class="crud-opt-radio w-4 h-4 ${focusRing}" ${isChecked ? 'checked' : ''}>`;
+          $(this).replaceWith(newHtml);
+        });
+
+        if (!isMultiple) {
+          // Ensure only one is checked
+          const $checked = $('.crud-opt-radio:checked');
+          if ($checked.length > 1) {
+            $checked.prop('checked', false);
+            $checked.first().prop('checked', true);
+          }
+        }
+      }
+
+      agregarNuevaOpcionCrud() {
+        const totalOptions = $('.crud-opcion-fila').length;
+        if (totalOptions >= 10) {
+          this.mostrarToast("El máximo es 10 opciones.", "triangle-exclamation");
+          return;
+        }
+
+        // Generate new ID (opt_a, opt_b, ...)
+        const usedIds = $('.crud-opt-id').map(function () { return $(this).val(); }).get();
+        let nextChar = 'a';
+        while (usedIds.includes(`opt_${nextChar}`)) {
+          nextChar = String.fromCharCode(nextChar.charCodeAt(0) + 1);
+        }
+
+        const isMultiple = $('#edit-pregunta-tipo').val() === 'seleccion_multiple';
+        this.agregarFilaOpcionCrud(`opt_${nextChar}`, '', false, isMultiple);
+      }
+
+      eliminarOpcionCrud(btn) {
+        const totalOptions = $('.crud-opcion-fila').length;
+        if (totalOptions <= 2) {
+          this.mostrarToast("El mínimo es 2 opciones.", "triangle-exclamation");
+          return;
+        }
+        $(btn).closest('.crud-opcion-fila').remove();
+      }
+
+      agregarFilaOpcionCrud(id, texto, esCorrecta, isMultiple) {
+        const nameRadio = isMultiple ? '' : 'name="crud_correct_opt"';
+        const typeAttr = isMultiple ? 'type="checkbox"' : 'type="radio"';
+        const focusRing = isMultiple ? 'focus:ring-emerald-500 text-emerald-500 rounded' : 'focus:ring-apple-blue text-apple-blue';
+        const randomId = "crud_opt_" + Math.random().toString(36).substr(2, 9);
+
+        const html = `
+              <div class="flex items-center gap-2 sm:gap-3 crud-opcion-fila animate-scaleUp">
+                  <input type="hidden" class="crud-opt-id" value="${id}">
+                  <div class="flex items-center justify-center p-1" title="Marcar como correcta">
+                      <input ${typeAttr} ${nameRadio} value="${randomId}" class="crud-opt-radio w-4 h-4 ${focusRing}" ${esCorrecta ? 'checked' : ''}>
+                  </div>
+                  <input type="text" class="crud-opt-texto flex-1 p-2 border border-slate-300 rounded-lg text-sm focus:border-apple-blue outline-none transition-all" value="${texto}" placeholder="Texto de la opción">
+                  <button type="button" onclick="app.eliminarOpcionCrud(this)" class="w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center flex-shrink-0" title="Eliminar opción">
+                      <i class="fa-solid fa-trash-can text-sm"></i>
+                  </button>
+              </div>
+          `;
+        $('#edit-contenedor-opciones').append(html);
+      }
+
+      procesarArchivoImagen(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const filename = file.name;
+          $('#edit-pregunta-imagen').val(`assets/img/${filename}`);
+        }
+        event.target.value = '';
+      }
+
+      limpiarImagenCrud() {
+        $('#edit-pregunta-imagen').val('');
+      }
+
+      cerrarModalEdicionPregunta() {
+        $('#modal-edicion-pregunta').addClass('hidden');
+      }
+
+      guardarPreguntaEdicion() {
+        const texto = $('#edit-pregunta-texto').val().trim();
+        const tipo = $('#edit-pregunta-tipo').val();
+        if (!texto) {
+          this.mostrarToast("El texto de la pregunta es obligatorio.", "triangle-exclamation");
+          return;
+        }
+
+        const opciones = [];
+        let correctasIdArray = [];
+        let correctaIdStr = null;
+        let validOpts = true;
+
+        $('.crud-opcion-fila').each(function (i) {
+          const id = $(this).find('.crud-opt-id').val();
+          const txt = $(this).find('.crud-opt-texto').val().trim();
+          const isChecked = $(this).find('.crud-opt-radio').is(':checked');
+
+          if (!txt) validOpts = false;
+
+          opciones.push({ id: id, texto: txt });
+          if (isChecked) {
+            correctasIdArray.push(id);
+            correctaIdStr = id;
+          }
+        });
+
+        if (!validOpts) {
+          this.mostrarToast("Todas las opciones deben tener texto.", "triangle-exclamation");
+          return;
+        }
+        if (correctasIdArray.length === 0) {
+          this.mostrarToast("Debes marcar al menos una opción como correcta.", "triangle-exclamation");
+          return;
+        }
+
+        if (tipo === 'opcion_multiple' && correctasIdArray.length > 1) {
+          this.mostrarToast("Opción Múltiple solo permite 1 respuesta correcta.", "triangle-exclamation");
+          return;
+        }
+
+        if (tipo === 'seleccion_multiple' && correctasIdArray.length < 2) {
+          // Soft warning maybe, but we allow it just in case. However, typically multi-select has >1 correct. We let it pass.
+        }
+
+        const idPregunta = $('#edit-pregunta-id').val();
+        const obj = this.bancoActivo[this.crudExamenSeleccionadoId];
+        if (!obj.preguntas) obj.preguntas = [];
+
+        const respuestaCorrectaFinal = (tipo === 'seleccion_multiple') ? correctasIdArray : correctaIdStr;
+
+        const nuevaPregunta = {
+          id: idPregunta || `${this.crudExamenSeleccionadoId}-p${Date.now()}`,
+          texto: texto,
+          tipo: tipo,
+          imagen: $('#edit-pregunta-imagen').val().trim() || null,
+          opciones: opciones,
+          respuesta_correcta: respuestaCorrectaFinal,
+          explicacion: $('#edit-pregunta-explicacion').val().trim()
+        };
+
+        if (idPregunta) {
+          // Actualizar existente
+          const idx = obj.preguntas.findIndex(x => x.id === idPregunta);
+          if (idx > -1) obj.preguntas[idx] = nuevaPregunta;
+        } else {
+          // Insertar nueva
+          obj.preguntas.push(nuevaPregunta);
+        }
+
+        this.guardarBancoLocal();
+        this.renderListaPreguntasCrud();
+        this.renderCrudSidebar(); // Actualizar contador
+        this.cerrarModalEdicionPregunta();
+        this.mostrarToast("Pregunta guardada exitosamente");
+      }
+
+      confirmarBorrarPregunta(preguntaId) {
+        this.abrirModal({
+          titulo: "Eliminar Pregunta",
+          subtitulo: "Acción permanente",
+          mensaje: "¿Estás seguro de que deseas eliminar este reactivo del banco de preguntas?",
+          btnAceptarTexto: "Sí, eliminar",
+          icono: "fa-regular fa-trash-can",
+          onAceptar: () => {
+            const obj = this.bancoActivo[this.crudExamenSeleccionadoId];
+            obj.preguntas = obj.preguntas.filter(x => x.id !== preguntaId);
+
+            this.guardarBancoLocal();
+            this.renderListaPreguntasCrud();
+            this.renderCrudSidebar();
+            this.mostrarToast("Pregunta eliminada");
+          }
+        });
+      }
+
+      exportarBancoJSON() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.bancoActivo, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `banco_examenes_completo.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        this.mostrarToast("Banco exportado como JSON.", 'download');
+      }
+
+      importarJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const content = JSON.parse(e.target.result);
+
+            // Validacion super basica
+            if (content["101"] && content["101"].datos_generales) {
+              this.bancoActivo = content;
+              this.guardarBancoLocal();
+              this.renderCrudSidebar();
+              $('#crud-lista-preguntas').empty();
+              $('#crud-titulo-examen').text("Selecciona un examen");
+              $('#crud-contador-preguntas').text("0 preguntas en el banco");
+              this.crudExamenSeleccionadoId = null;
+
+              this.mostrarToast("Banco importado y actualizado exitosamente.", 'check');
+            } else {
+              this.mostrarToast("El archivo JSON no parece tener el formato correcto del banco completo.", 'triangle-exclamation');
+            }
+          } catch (err) {
+            this.mostrarToast("Error al procesar el archivo JSON.", 'circle-xmark');
+          }
+          // Reset file input
+          event.target.value = '';
+        };
+        reader.readAsText(file);
+      }
+
+      registrarAtajosTeclado() {
+        $(document).on('keydown', (e) => {
+          if ($('#panel-examen-activo').is(':visible') && !$('#modal-confirmacion').is(':visible') && !$('#modal-edicion-pregunta').is(':visible')) {
+            if (e.key === 'ArrowLeft') {
+              this.anteriorPregunta();
+            }
+            else if (e.key === 'ArrowRight') {
+              if (this.indicePregunta < this.preguntasSesion.length - 1) {
+                this.siguientePregunta();
+              }
+            }
+            else if (['1', '2', '3', '4'].includes(e.key)) {
+              const num = parseInt(e.key) - 1;
+              const p = this.preguntasSesion[this.indicePregunta];
+              if (p && p.opciones && p.opciones[num]) {
+                this.seleccionarOpcion(p.id, p.opciones[num].id);
+              }
+            }
+          }
+        });
+      }
+
+      abrirModal({ titulo, subtitulo, mensaje, btnAceptarTexto = "Aceptar", icono = "fa-solid fa-circle-exclamation", onAceptar = null }) {
+        $('#modal-titulo').text(titulo);
+        $('#modal-subtitulo').text(subtitulo);
+        $('#modal-mensaje').text(mensaje);
+        $('#modal-btn-aceptar').text(btnAceptarTexto);
+        $('#modal-icono i').attr('class', icono);
+
+        const $modal = $('#modal-confirmacion').removeClass('hidden');
+
+        $('#modal-btn-cancelar').off('click').on('click', () => {
+          $modal.addClass('hidden');
+        });
+
+        $('#modal-btn-aceptar').off('click').on('click', () => {
+          $modal.addClass('hidden');
+          if (typeof onAceptar === 'function') {
+            onAceptar();
+          }
+        });
+      }
+
+      mostrarToast(mensaje, icono = 'check') {
+        const $toast = $('#toast-notificacion');
+        $('#toast-texto').text(mensaje);
+        $('#toast-icono').attr('class', `fa-solid fa-${icono} ${icono === 'triangle-exclamation' ? 'text-amber-400' : 'text-apple-green'}`);
+
+        $toast.removeClass('hidden');
+        anime({
+          targets: '#toast-notificacion',
+          translateY: [20, 0],
+          opacity: [0, 1],
+          duration: 250,
+          easing: 'easeOutQuad'
+        });
+
+        setTimeout(() => {
+          anime({
+            targets: '#toast-notificacion',
+            translateY: [0, 20],
+            opacity: [1, 0],
+            duration: 200,
+            easing: 'easeInQuad',
+            complete: () => $toast.addClass('hidden')
+          });
+        }, 3500);
+      }
+    }
+
+    // Inicialización al cargar la ventana
+    window.onload = function () {
+      window.app = new SimuladorApp();
+      window.app.init();
+    };
+  </script>
+</body>
+</html>
